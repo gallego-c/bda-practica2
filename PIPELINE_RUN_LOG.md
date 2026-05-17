@@ -1,53 +1,119 @@
-# Pipeline Run Log
+# Quick Start Guide
 
-Date: 2026-05-17
+Get the complete pipeline running end-to-end in minutes.
 
-## Goal
+## 📋 Prerequisites
 
-Verify that the complete medical data pipeline runs end to end, first in WSL and then on native Windows, using existing Landing Zone snapshots.
+- Environment set up ([see ENVIRONMENT.md](ENVIRONMENT.md))
+- Python 3.11 or 3.12 activated
+- Java 17 available
+- ✅ Recommended: Use existing Landing Zone snapshots (skip downloads)
 
-Command under test:
+## ⚡ Run Everything
+
+From the project root:
 
 ```bash
 python run_all_pipeline.py --skip-landing --strict
 ```
 
-## WSL Attempt And Fixes
+**Flags:**
+- `--skip-landing` - Don't re-download datasets, use existing snapshots
+- `--strict` - Fail on first error (recommended for development)
 
-Initial non-elevated WSL calls reported no registered distributions:
+**Expected runtime:** 8-15 minutes depending on hardware
 
-```powershell
-wsl --list --all --verbose
-wsl -e bash -lc "echo WSL_OK"
-```
+## 🔍 Run Individual Zones
 
-The elevated WSL context showed existing distributions and a new test distribution was registered:
-
-```powershell
-wsl --install Ubuntu --name Ubuntu-Codex --no-launch
-wsl -d Ubuntu-Codex -u root -- bash -lc "echo WSL_OK && uname -a"
-```
-
-Ubuntu-Codex started successfully, but its default Python was 3.14 and Java was missing. The existing project `.venv` had the needed Python packages available, so only Java needed correction.
-
-Java setup:
+Process each zone separately for debugging or incremental work:
 
 ```bash
-apt-get update
-apt-get install -y default-jdk
+# Part 1: Download datasets (optional, requires Kaggle credentials)
+python Part1_Landing_zone/data_collector.py
+
+# Part 2: Structural formatting
+python Part2_Formatting_zone/formatting_pipeline.py
+
+# Part 3: Data quality and validation
+python Part3_Trusted_zone/trusted_pipeline.py
+
+# Part 4: Knowledge Graph generation
+python Part4_Exploitation_zone/exploitation_pipeline.py
+
+# Part 5: ML models and analysis
+python Part5_Analysis_zone/analysis_pipeline.py
+python Part5_Analysis_zone/kg_analysis_pipeline.py
 ```
 
-First WSL pipeline run failed at Spark startup because `default-jdk` on Ubuntu 26.04 installed Java 25:
+## ✅ Verify Success
 
-```text
+After running the full pipeline, check for these outputs:
+
+**DuckDB Databases:**
+```
+Part2_Formatting_zone/formatted_zone/formatted.duckdb
+Part3_Trusted_zone/trusted_zone/trusted.duckdb
+Part4_Exploitation_zone/exploitation_zone/exploitation.duckdb
+```
+
+**Knowledge Graph:**
+```
+Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.ttl
+Part4_Exploitation_zone/exploitation_zone/kg/schema/health_risk_schema.ttl
+```
+
+**ML Models and Reports:**
+```
+Part5_Analysis_zone/models/integrated_core_model.pkl
+Part5_Analysis_zone/models/integrated_enriched_model.pkl
+Part5_Analysis_zone/reports/summary_report.json
+```
+
+## 🎯 What Each Zone Produces
+
+| Zone | Main Output | Records |
+|------|-------------|---------|
+| Part 2 | formatted.duckdb | Raw structured records |
+| Part 3 | trusted.duckdb | Cleaned, validated records |
+| Part 4 | KG Turtle files | RDF triples for semantic analysis |
+| Part 5 | Models + Reports | Trained classifiers + predictions |
+
+## 🐛 Troubleshooting
+
+### Python version wrong
+```bash
+python --version  # Should be 3.11 or 3.12
+# Re-run environment setup if needed
+```
+
+### Java not found
+```bash
+java -version  # Should be "openjdk version 17"
+# Linux/WSL: sudo apt install openjdk-17-jdk
+# Windows: Script installs it automatically
+```
+
+### Spark startup fails
+```
 java.lang.UnsupportedOperationException: getSubject is not supported
 ```
-
-Fix:
-
+→ You have Java 25 installed. Reinstall Java 17:
 ```bash
-apt-get install -y openjdk-17-jdk
+# Linux/WSL:
+sudo apt install openjdk-17-jdk
 update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+```
+
+### Landing Zone missing
+Ensure `Part1_Landing_zone/landing_zone/` directory exists with at least one timestamped dataset folder from a previous run.
+
+## 📖 Next Steps
+
+- View zone documentation: each `Part*/README.md`
+- Explore DuckDB databases: query with SQL
+- Inspect Knowledge Graph: see `Part4_Exploitation_zone/KG_METAMODEL.md`
+- Review ML results: open `Part5_Analysis_zone/reports/summary_report.json`
+- Run Jupyter notebooks: `notebooks/`
 update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ```

@@ -1,10 +1,17 @@
-Running this project in Linux/WSL or Windows
+# Environment Setup
 
-The pipeline has been verified in WSL/Linux and native Windows. Spark 3.5 should run with Java 17. Avoid Java 25 because Hadoop/Spark fails during startup with `Subject.getSubject is not supported`.
+Choose the setup instructions for your operating system.
 
-## WSL / Linux
+## ⚙️ System Requirements
 
-1) Update packages and install system dependencies:
+- **Python:** 3.11 or 3.12
+- **Java:** 17 (required for Spark; **do not use Java 25**)
+- **PySpark:** 3.5.0
+- **Kaggle credentials:** Only needed if downloading new datasets
+
+## 🐧 Linux / WSL Setup
+
+### 1. Install System Dependencies
 
 ```bash
 sudo apt update && sudo apt upgrade -y
@@ -12,9 +19,7 @@ sudo apt install -y python3-pip python3-venv build-essential openjdk-17-jdk
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ```
 
-`apache-airflow==2.10.5` requires Python `<3.13`, so use Python 3.11 or 3.12 if you install the Landing Zone Airflow dependencies.
-
-If your distro is Ubuntu and `python3.12` is not available yet, install it with the deadsnakes PPA:
+**Note on Python version:** If your distro has Python 3.13+, install Python 3.11 or 3.12:
 
 ```bash
 sudo apt install -y software-properties-common
@@ -23,38 +28,52 @@ sudo apt update
 sudo apt install -y python3.12 python3.12-venv
 ```
 
-If you already have `python3.11` or `python3.12`, that is also fine for this project.
+### 2. Run Setup Script
 
-2) Make the helper script executable and run it from the project root:
+From the project root:
 
 ```bash
 chmod +x scripts/setup_env.sh
 ./scripts/setup_env.sh
 ```
 
-If your distro has more than one compatible Python version installed, you can force it explicitly:
+To force a specific Python version:
 
 ```bash
 PYTHON_BIN=python3.12 ./scripts/setup_env.sh
 ```
 
-3) Activate the environment in your shell:
+### 3. Activate Environment
 
 ```bash
 source .venv/bin/activate
 ```
 
-## Windows
+## 🪟 Windows Setup
 
-1) Create a Windows virtual environment:
+### 1. Run PowerShell Setup Script
+
+From the project root in PowerShell:
 
 ```powershell
 .\scripts\setup_env_windows.ps1
 ```
 
-The helper creates `.venv-win`, installs `requirements.txt`, and downloads the Hadoop native files listed below. `requirements.txt` includes `jdk4py==17.0.9.2` only on Windows, which provides a local Java 17 runtime when no system Java is configured.
+This script:
+- Creates `.venv-win` virtual environment
+- Installs all requirements
+- Downloads Hadoop native binaries for Windows Spark
+- Installs Java 17 locally via `jdk4py` package
 
-2) If you prefer to install Hadoop native binaries manually for Windows Spark local file access:
+### 2. Run the Pipeline
+
+```powershell
+.\.venv-win\Scripts\python.exe run_all_pipeline.py --skip-landing --strict
+```
+
+### (Optional) Manual Hadoop Setup for Windows
+
+If you prefer to install Hadoop binaries manually instead of letting the script do it:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path .hadoop\bin
@@ -62,14 +81,52 @@ Invoke-WebRequest -Uri "https://github.com/cdarlint/winutils/raw/master/hadoop-3
 Invoke-WebRequest -Uri "https://github.com/cdarlint/winutils/raw/master/hadoop-3.3.5/bin/hadoop.dll" -OutFile .hadoop\bin\hadoop.dll
 ```
 
-3) Run the pipeline:
+## 🔑 Kaggle Credentials (Optional)
 
-```powershell
-.\.venv-win\Scripts\python.exe run_all_pipeline.py --skip-landing --strict
+Required only if you need to download new datasets.
+
+### Linux/WSL Setup
+
+```bash
+mkdir -p ~/.kaggle
+cp /path/to/your/kaggle.json ~/.kaggle/kaggle.json
+chmod 600 ~/.kaggle/kaggle.json
 ```
 
-## Common notes
+### Windows Setup
 
-- The script creates a local virtual environment in `.venv` and installs requirements from `requirements.txt` and `Part1_Landing_zone/requirements.txt` when present.
-- If you prefer to manually manage dependencies, run the commands in the script step-by-step instead of executing it.
-- If `python3.12` is not available in your distro, install a compatible Python first and rerun the script with `PYTHON_BIN=python3.12` or another Python `<3.13` such as `python3.11`.
+Place your `kaggle.json` at:
+```
+C:\Users\<YourUsername>\.kaggle\kaggle.json
+```
+
+Get your credentials from [Kaggle Settings](https://www.kaggle.com/settings).
+
+## ✅ Verify Installation
+
+After setup, verify everything is working:
+
+```bash
+# Activate environment (adjust for your OS)
+source .venv/bin/activate          # Linux/WSL
+.\.venv-win\Scripts\Activate.ps1   # Windows PowerShell
+
+# Check Python
+python --version  # Should be 3.11 or 3.12
+
+# Check Java
+java -version  # Should be openjdk-17
+
+# Check Spark
+python -c "import pyspark; print(pyspark.__version__)"  # Should be 3.5.0
+
+# Try running a zone
+python Part2_Formatting_zone/formatting_pipeline.py
+```
+
+## 📝 Environment Details
+
+- Virtual environment location: `.venv` (Linux/WSL) or `.venv-win` (Windows)
+- Requirements file: `requirements.txt`
+- Landing Zone additional requirements: `Part1_Landing_zone/requirements.txt`
+- Hadoop native files (Windows): `.hadoop/bin/`

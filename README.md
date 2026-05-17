@@ -1,103 +1,102 @@
-# BDA Practice 2
+# BDA Practice 2: Medical Data Pipeline with Knowledge Graph
 
-This project extends the P1 cardiovascular-risk data pipeline with a Knowledge Graph-based Exploitation Zone.
+A comprehensive data pipeline that ingests medical datasets from Kaggle, performs progressive data refinement across five zones, and generates a semantic Knowledge Graph for cross-dataset analysis and predictive modeling.
 
-The five-zone architecture is preserved:
+## 🚀 Quick Start
 
-1. `Part1_Landing_zone`
-2. `Part2_Formatting_zone`
-3. `Part3_Trusted_zone`
-4. `Part4_Exploitation_zone`
-5. `Part5_Analysis_zone`
+### Prerequisites
+- Python 3.11 or 3.12
+- Java 17 (not Java 25)
+- PySpark 3.5.0
+- Kaggle credentials (optional, for new downloads)
 
-P2 focuses on the flow from Formatted to Exploitation. The main change is that the Exploitation Zone is no longer only a flat consolidated table: it now generates an RDF/RDFS Knowledge Graph from cleaned Trusted Zone datasets.
+### Setup (Choose your OS)
 
-## Data sources
-
-- `sulianova/cardiovascular-disease-dataset`
-- `alexteboul/heart-disease-health-indicators-dataset`
-- `cherngs/heart-disease-cleveland-uci`
-
-## P2 architecture
-
-- `Part1_Landing_zone/`
-  Downloads raw source snapshots and stores raw Parquet data.
-- `Part2_Formatting_zone/`
-  Performs only structural formatting: column-name normalization, table creation, technical fingerprints, and DuckDB persistence.
-- `Part3_Trusted_zone/`
-  Performs semantic standardization, quality rules, denial constraints, cleaning, quarantine, and quality reports.
-- `Part4_Exploitation_zone/`
-  Builds the Knowledge Graph semantic layer from Trusted data using RDF/RDFS and RDFLib. It also keeps a compatibility table for the existing ML pipelines.
-- `Part5_Analysis_zone/`
-  Runs the legacy predictive pipelines and a SPARQL-based KG analysis pipeline.
-
-## Main P2 fixes
-
-Formatting Zone was corrected so it no longer performs:
-
-- age conversion
-- BMI calculation
-- gender normalization
-- boolean normalization
-- risk-factor derivation
-- cleaning, validation, filtering, deduplication, or quarantine
-
-Those tasks now belong to the Trusted Zone, where the cleaned datasets become the input for the KG generation pipeline.
-
-## Knowledge Graph design
-
-The KG uses RDF/RDFS with the namespace:
-
-```text
-https://example.org/bda/health-risk/
+**Windows:**
+```powershell
+.\scripts\setup_env_windows.ps1
 ```
 
-Main classes:
+**Linux/WSL:**
+```bash
+chmod +x scripts/setup_env.sh
+./scripts/setup_env.sh
+source .venv/bin/activate
+```
 
-- `hr:HealthRecord`
-- `hr:Dataset`
-- `hr:PopulationGroup`
-- `hr:AgeGroup`
-- `hr:Gender`
-- `hr:Indicator`
-- `hr:AggregateMeasurement`
-- `hr:Outcome`
-- `hr:KnowledgeGraphRun`
+### Run the Complete Pipeline
+```bash
+python run_all_pipeline.py --skip-landing --strict
+```
 
-The datasets do not share a true person identifier, location, or timestamp. The KG therefore integrates them through shared semantic concepts that are present in all or several sources:
+See [ENVIRONMENT.md](ENVIRONMENT.md) for detailed setup instructions.
 
-- age group
-- gender
-- population group
-- health indicator
-- risk factor
-- outcome
-- dataset provenance
+## 📊 Repository Structure
 
-This gives semantic homogenization without falsely merging unrelated people across datasets.
+The project is organized as a five-zone data architecture:
 
-Detailed schema and mapping documentation is in:
+```
+bda-practica2/
+├── Part1_Landing_zone/         Data ingestion from Kaggle
+├── Part2_Formatting_zone/       Structural normalization
+├── Part3_Trusted_zone/          Data quality and standardization
+├── Part4_Exploitation_zone/     Knowledge Graph generation
+├── Part5_Analysis_zone/         Predictive models and KG analysis
+├── notebooks/                   Validation and visualization
+└── scripts/                      Setup helpers
+```
 
-- `Part4_Exploitation_zone/KG_METAMODEL.md`
+## 🏗️ Architecture Overview
 
-## KG technologies
+Each zone has a specific responsibility:
 
-- RDF/RDFS for schema and graph modelling
-- RDFLib for triple generation and SPARQL validation
-- SPARQL for analytical graph queries
-- GraphDB as an optional external store for visualization and querying
-- DuckDB for formatted/trusted tables, compatibility views, and KG manifest discovery
+| Zone | Purpose | Output |
+|------|---------|--------|
+| **Part1: Landing** | Download raw datasets from Kaggle | Raw Parquet snapshots |
+| **Part2: Formatting** | Normalize column names and structure | Structured DuckDB tables |
+| **Part3: Trusted** | Quality rules, cleaning, validation | Clean trusted datasets |
+| **Part4: Exploitation** | RDF/RDFS Knowledge Graph generation | KG + compatibility tables |
+| **Part5: Analysis** | ML pipelines + SPARQL graph queries | Models, predictions, reports |
 
-## Supported environments
+## 📥 Data Sources
 
-The pipeline is verified in both WSL/Linux and native Windows. Spark 3.5 requires Java 17 for this project; Java 25 is not supported.
+Three integrated cardiovascular health datasets:
+- **Cardiovascular Disease Dataset** (`sulianova/cardiovascular-disease-dataset`)
+- **Heart Disease Health Indicators** (`alexteboul/heart-disease-health-indicators-dataset`)
+- **Heart Disease Cleveland** (`cherngs/heart-disease-cleveland-uci`)
 
-- Python 3.11 or 3.12
-- PySpark 3.5.0
-- Java 17 for Spark
-- Kaggle credentials for Landing Zone if new downloads are required
+## 🧠 Knowledge Graph
 
-### Linux/WSL setup
+The Exploitation Zone creates an RDF/RDFS semantic layer using:
+- **Namespace:** `https://example.org/bda/health-risk/`
+- **Schema:** RDF/RDFS classes and properties
+- **Query Language:** SPARQL
+- **Technology:** RDFLib for generation, optional GraphDB for external storage
+
+Datasets are integrated through **shared semantic concepts** (age group, gender, indicators, outcomes) rather than false person-level merging.
+
+See [Part4_Exploitation_zone/KG_METAMODEL.md](Part4_Exploitation_zone/KG_METAMODEL.md) for detailed schema documentation.
+
+## 📖 Zone Documentation
+
+Each zone has detailed usage instructions in its README:
+- [Part1: Landing Zone](Part1_Landing_zone/README.md)
+- [Part2: Formatting Zone](Part2_Formatting_zone/README.md)
+- [Part3: Trusted Zone](Part3_Trusted_zone/README.md)
+- [Part4: Exploitation Zone](Part4_Exploitation_zone/README.md)
+- [Part5: Analysis Zone](Part5_Analysis_zone/README.md)
+
+## 🛠️ Key Files
+
+- `run_all_pipeline.py` - Main orchestrator, runs all zones in sequence
+- `spark_runtime.py` - Spark session manager
+- `notebooks/` - Jupyter validation notebooks
+
+## 💾 Data Storage
+
+- **DuckDB** databases in each zone for efficient columnar access
+- **Parquet** versioned snapshots for traceability
+- **Turtle (.ttl) files** for the Knowledge Graph
 
 ```bash
 sudo apt update

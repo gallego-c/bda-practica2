@@ -2,8 +2,14 @@
 
 .env
 .venv/
-.hadoop/
+.venv-win/
+.hadoop
 
+*.crc
+.pytest_cache/
+.ipynb_checkpoints/
+
+Part2_Formatting_zone/formatted_zone/
 Part3_Trusted_zone/_staging/
 Part3_Trusted_zone/trusted_zone/
 Part4_Exploitation_zone/_staging/

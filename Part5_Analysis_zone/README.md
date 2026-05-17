@@ -1,103 +1,153 @@
-# Part5 Analysis Zone
+# Part 5: Analysis Zone
 
-This zone implements two predictive analysis pipelines on top of the compatibility analytical table generated in `Part4_Exploitation_zone`, plus one SPARQL-based graph analysis pipeline for P2.
+The Analysis Zone implements two complementary predictive pipelines on integrated datasets, plus a graph-based SPARQL analysis pipeline. All pipelines consume data from the Exploitation Zone.
 
-## Goal
+**Purpose:** Demonstrate actionable ML models and semantic graph analysis on integrated cross-dataset information.
 
-To satisfy the analytical requirement of the project with at least two reproducible classification pipelines using a single integrated base:
+## 🎯 Analysis Approach
 
-- the model is not trained separately per original dataset
-- the three sources are loaded together from `exploitation.risk_model_input`
-- two pipelines with different feature sets are compared
-- the KG-based Exploitation Zone is consumed through SPARQL for graph-native analysis
+All pipelines use a single integrated data source rather than training separate models per dataset:
+- Data is loaded from the compatibility table in Exploitation Zone
+- Three datasets are combined without false person-level merging
+- Two model variants are trained and compared
 
-## Main Scripts
+## 📊 Model Pipelines
 
-- `analysis_pipeline.py`
-  Part5 orchestrator.
-- `kg_analysis_pipeline.py`
-  Loads the compact RDF analytics graph and executes SPARQL queries.
-- `analysis_utils.py`
-  Data loading, shared preprocessing, validation, and persistence.
-- `model_pipeline_integrated_core.py`
-  Baseline pipeline with compact and robust shared variables.
-- `model_pipeline_integrated_enriched.py`
-  Alternative pipeline with additional reconciled signal.
+### 1. Integrated Core Model
+**Feature Set:** Conservative, widely-available indicators
 
-## Execution
+**Numeric Features:**
+- `age_years_proxy` - Derived age
+- `bmi` - Body Mass Index
+
+**Categorical Features:**
+- `gender`
+- `high_blood_pressure_flag`
+- `high_cholesterol_flag`
+- `glucose_risk_flag`
+- `smoking_flag`
+- `physical_activity_flag`
+- `heavy_alcohol_flag`
+
+**Model Selection:** ROC-AUC cross-validation metric
+
+### 2. Integrated Enriched Model
+**Feature Set:** Extended with additional clinical variables
+
+**Additional Numeric Features:**
+- `systolic_bp` - Systolic blood pressure
+- `diastolic_bp` - Diastolic blood pressure
+- `general_health_score` - Self-reported health
+- `mental_unhealthy_days` - Mental health indicator
+- `physical_unhealthy_days` - Physical health indicator
+- `max_heart_rate` - Cardiovascular capacity
+
+**Additional Categorical Features:**
+- `difficulty_walking_flag`
+- `exercise_induced_angina`
+
+**Model Selection:** PR-AUC cross-validation metric
+
+### Candidate Models (Both Pipelines)
+- Logistic Regression (balanced)
+- Gradient Boosting (tuned)
+
+## 🧠 Graph Analysis Pipeline
+
+`kg_analysis_pipeline.py` operates directly on the RDF Knowledge Graph:
+- Loads the compact analytics graph (Turtle format)
+- Executes SPARQL queries without flattening
+- Provides graph-native analysis and insights
+- Demonstrates semantic integration benefits
+
+## 🚀 Usage
+
+### Run ML Pipelines
 
 ```bash
-conda activate bda_practica
-cd /path/to/bda-practica1
 python Part5_Analysis_zone/analysis_pipeline.py
+```
+
+This trains both integrated models and produces comparison reports.
+
+### Run Graph Analysis
+
+```bash
 python Part5_Analysis_zone/kg_analysis_pipeline.py
 ```
 
-## Input
+Executes SPARQL queries on the Knowledge Graph and generates analytical insights.
 
+### Processing Time
+- ML pipelines: 2-5 minutes (depending on cross-validation folds)
+- Graph analysis: 1-2 minutes
+
+## 📥 Inputs
+
+From Exploitation Zone:
 - `Part4_Exploitation_zone/exploitation_zone/exploitation.duckdb`
-- table: `exploitation.risk_model_input`
-- `Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl`
+  - `exploitation.risk_model_input` - ML training data table
+- `Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl` - Knowledge Graph
 
-## Outputs
+## 📤 Outputs
 
-- `Part5_Analysis_zone/models/integrated_core_model.pkl`
-- `Part5_Analysis_zone/models/integrated_enriched_model.pkl`
-- `Part5_Analysis_zone/reports/integrated_core_report.json`
-- `Part5_Analysis_zone/reports/integrated_enriched_report.json`
-- `Part5_Analysis_zone/reports/summary_report.json`
-- `Part5_Analysis_zone/reports/kg_analysis_report.json`
+### Trained Models
+```
+Part5_Analysis_zone/models/
+├── integrated_core_model.pkl         # Pickled model object
+└── integrated_enriched_model.pkl     # Pickled model object
+```
 
-## KG Analysis Pipeline
+### Reports
+```
+Part5_Analysis_zone/reports/
+├── integrated_core_report.json       # Core model performance metrics
+├── integrated_enriched_report.json   # Enriched model performance metrics
+├── summary_report.json               # Side-by-side comparison
+└── kg_analysis_report.json           # Graph analysis findings
+```
 
-`kg_analysis_pipeline.py` consumes the semantic layer directly instead of flattening it back into a table. It runs SPARQL queries that:
+### Report Contents
+Each model report includes:
+- Accuracy, Precision, Recall, F1-Score
+- ROC-AUC or PR-AUC (depending on model)
+- Confusion matrix
+- Feature importance rankings
+- Cross-validation fold details
+- Training duration
 
-- identify indicators shared by multiple datasets
-- rank population groups by heart disease outcome rate
-- combine graph-linked indicators for the same age/gender group
+## 🛠️ Configuration
 
-This demonstrates how the Exploitation Zone can serve graph-based analysis, dashboards, GraphDB exploration, and external semantic tools.
+Key scripts:
+- `analysis_pipeline.py` - ML orchestrator
+- `kg_analysis_pipeline.py` - SPARQL-based graph analysis
+- `analysis_utils.py` - Data loading, preprocessing, validation
+- `model_pipeline_integrated_core.py` - Core model training
+- `model_pipeline_integrated_enriched.py` - Enriched model training
+- `analysis_config.py` - Shared configuration
 
-## How the Two Pipelines Work
+## 📈 Feature Engineering
 
-### 1. `integrated_core`
+Both pipelines apply:
+- **Scaling:** StandardScaler for numeric features
+- **Encoding:** LabelEncoder for categorical features
+- **Validation:** Train/test split stratified by outcome
+- **Cross-validation:** 5-fold stratified CV
 
-Uses variables that are widely available and relatively robust across sources:
+## 🔍 Model Comparison
 
-- numeric:
-  `age_years_proxy`, `bmi`
-- categorical:
-  `gender`, `high_blood_pressure_flag`, `high_cholesterol_flag`,
-  `glucose_risk_flag`, `smoking_flag`, `physical_activity_flag`,
-  `heavy_alcohol_flag`
+The `summary_report.json` compares:
+- Model accuracy on held-out test sets
+- Cross-validation score distributions
+- Feature set complexity (core vs. enriched)
+- Computational cost
+- Interpretability vs. performance tradeoff
 
-Model selection:
+This enables data-driven decisions about which model variant is appropriate for your use case.
 
-- cross-validation selection metric: `ROC-AUC`
+## 📚 Further Reading
 
-### 2. `integrated_enriched`
-
-Extends the previous feature set with additional reconciled variables:
-
-- numeric:
-  `age_years_proxy`, `bmi`, `systolic_bp`, `diastolic_bp`,
-  `general_health_score`, `mental_unhealthy_days`,
-  `physical_unhealthy_days`, `max_heart_rate`
-- categorical:
-  `gender`, `high_blood_pressure_flag`, `high_cholesterol_flag`,
-  `glucose_risk_flag`, `smoking_flag`, `physical_activity_flag`,
-  `heavy_alcohol_flag`, `difficulty_walking_flag`,
-  `exercise_induced_angina`
-
-Model selection:
-
-- cross-validation selection metric: `PR-AUC`
-
-## Candidate Models in Both Pipelines
-
-Both pipelines evaluate the same two candidate models:
-
-- `logreg_balanced`
+For implementation details, hyperparameter tuning, and validation methodology, see the script docstrings in each `model_pipeline_*.py` file.
   - `LogisticRegression`
   - `max_iter=2000`
   - `class_weight="balanced"`
