@@ -1,0 +1,546 @@
+{
+  "run_at_utc": "2026-05-17T16:39:03+00:00",
+  "kg_manifest": "C:\\Users\\Claudia\\Documents\\Github\\bda-practica2\\Part4_Exploitation_zone\\exploitation_zone\\kg\\kg_manifest.json",
+  "analytics_graph": "C:\\Users\\Claudia\\Documents\\Github\\bda-practica2\\Part4_Exploitation_zone\\exploitation_zone\\kg\\health_risk_analytics_kg.ttl",
+  "triple_count": 5568,
+  "queries": [
+    {
+      "query": "02_indicators_shared_by_datasets.rq",
+      "rows_returned": 10,
+      "rows": [
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/age-years",
+          "label": "Age in years or age-band proxy",
+          "datasetCount": 3
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/heart-disease-outcome",
+          "label": "Heart disease outcome",
+          "datasetCount": 3
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/high-blood-pressure",
+          "label": "High blood pressure flag",
+          "datasetCount": 3
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/high-cholesterol",
+          "label": "High cholesterol flag",
+          "datasetCount": 3
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/body-mass-index",
+          "label": "Body mass index",
+          "datasetCount": 2
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/glucose-risk",
+          "label": "Glucose risk flag",
+          "datasetCount": 2
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/heavy-alcohol",
+          "label": "Heavy alcohol consumption flag",
+          "datasetCount": 2
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/physical-activity",
+          "label": "Physical activity flag",
+          "datasetCount": 2
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/smoking",
+          "label": "Smoking flag",
+          "datasetCount": 2
+        },
+        {
+          "indicator": "https://example.org/bda/health-risk/indicator/systolic-blood-pressure",
+          "label": "Systolic blood pressure",
+          "datasetCount": 2
+        }
+      ]
+    },
+    {
+      "query": "03_rank_population_groups_by_outcome_rate.rq",
+      "rows_returned": 20,
+      "rows": [
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-12/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 1.0,
+          "observations": 1
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.75,
+          "observations": 28
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.75,
+          "observations": 4
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.736842,
+          "observations": 19
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.679566,
+          "observations": 8011
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.66,
+          "observations": 50
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.64491,
+          "observations": 4489
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.571429,
+          "observations": 7
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.564067,
+          "observations": 12167
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.558466,
+          "observations": 5918
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.545455,
+          "observations": 22
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.521739,
+          "observations": 23
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.5,
+          "observations": 18
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.478221,
+          "observations": 5487
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.456107,
+          "observations": 4192
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.451776,
+          "observations": 11260
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.421053,
+          "observations": 38
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.408207,
+          "observations": 6994
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.329614,
+          "observations": 3137
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-13/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "positiveRate": 0.307119,
+          "observations": 6841
+        }
+      ]
+    },
+    {
+      "query": "04_combine_indicators_same_group.rq",
+      "rows_returned": 50,
+      "rows": [
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-12/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 1.0,
+          "highBpRate": 0.0,
+          "highCholesterolRate": 1.0
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.75,
+          "highBpRate": 1.0,
+          "highCholesterolRate": 0.75
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.75,
+          "highBpRate": 0.642857,
+          "highCholesterolRate": 0.892857
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.736842,
+          "highBpRate": 0.526316,
+          "highCholesterolRate": 0.894737
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.679566,
+          "highBpRate": 0.880539,
+          "highCholesterolRate": 0.345775
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.66,
+          "highBpRate": 0.64,
+          "highCholesterolRate": 0.84
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.64491,
+          "highBpRate": 0.893295,
+          "highCholesterolRate": 0.288928
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.571429,
+          "highBpRate": 0.285714,
+          "highCholesterolRate": 0.714286
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.564067,
+          "highBpRate": 0.847374,
+          "highCholesterolRate": 0.304019
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.558466,
+          "highBpRate": 0.879689,
+          "highCholesterolRate": 0.264954
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.545455,
+          "highBpRate": 0.772727,
+          "highCholesterolRate": 0.818182
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.521739,
+          "highBpRate": 0.347826,
+          "highCholesterolRate": 0.869565
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.5,
+          "highBpRate": 0.722222,
+          "highCholesterolRate": 0.944444
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.478221,
+          "highBpRate": 0.86222,
+          "highCholesterolRate": 0.219063
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.456107,
+          "highBpRate": 0.822281,
+          "highCholesterolRate": 0.196088
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.451776,
+          "highBpRate": 0.805595,
+          "highCholesterolRate": 0.241208
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.421053,
+          "highBpRate": 0.421053,
+          "highCholesterolRate": 0.842105
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.408207,
+          "highBpRate": 0.735916,
+          "highCholesterolRate": 0.211038
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.329614,
+          "highBpRate": 0.791521,
+          "highCholesterolRate": 0.158113
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-13/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.307119,
+          "highBpRate": 0.617307,
+          "highCholesterolRate": 0.507674
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.291013,
+          "highBpRate": 0.646193,
+          "highCholesterolRate": 0.164835
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.275862,
+          "highBpRate": 0.448276,
+          "highCholesterolRate": 0.724138
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-12/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.26562,
+          "highBpRate": 0.645992,
+          "highCholesterolRate": 0.549375
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.259684,
+          "highBpRate": 0.737446,
+          "highCholesterolRate": 0.13056
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.229709,
+          "highBpRate": 0.636977,
+          "highCholesterolRate": 0.581068
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "heartDiseaseRate": 0.221934,
+          "highBpRate": 0.598446,
+          "highCholesterolRate": 0.158031
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-13/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.19559,
+          "highBpRate": 0.67145,
+          "highCholesterolRate": 0.532883
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.183586,
+          "highBpRate": 0.59809,
+          "highCholesterolRate": 0.565982
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.166667,
+          "highBpRate": 0.75,
+          "highCholesterolRate": 1.0
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-12/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.143343,
+          "highBpRate": 0.657571,
+          "highCholesterolRate": 0.560098
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.13511,
+          "highBpRate": 0.536967,
+          "highCholesterolRate": 0.520604
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.118854,
+          "highBpRate": 0.605593,
+          "highCholesterolRate": 0.571776
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.1,
+          "highBpRate": 0.2,
+          "highCholesterolRate": 0.8
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.095039,
+          "highBpRate": 0.479383,
+          "highCholesterolRate": 0.480132
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.086795,
+          "highBpRate": 0.541566,
+          "highCholesterolRate": 0.544666
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.073067,
+          "highBpRate": 0.464014,
+          "highCholesterolRate": 0.497729
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.066667,
+          "highBpRate": 0.6,
+          "highCholesterolRate": 0.933333
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.066557,
+          "highBpRate": 0.409158,
+          "highCholesterolRate": 0.431575
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.056271,
+          "highBpRate": 0.391722,
+          "highCholesterolRate": 0.433568
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.044512,
+          "highBpRate": 0.320838,
+          "highCholesterolRate": 0.358663
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.042177,
+          "highBpRate": 0.334608,
+          "highCholesterolRate": 0.384096
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.030838,
+          "highBpRate": 0.252562,
+          "highCholesterolRate": 0.28825
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.027204,
+          "highBpRate": 0.281157,
+          "highCholesterolRate": 0.317049
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.017513,
+          "highBpRate": 0.193411,
+          "highCholesterolRate": 0.225372
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.014267,
+          "highBpRate": 0.241227,
+          "highCholesterolRate": 0.254838
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.013722,
+          "highBpRate": 0.142136,
+          "highCholesterolRate": 0.180324
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-3/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.011877,
+          "highBpRate": 0.11069,
+          "highCholesterolRate": 0.144507
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-3/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.01067,
+          "highBpRate": 0.190674,
+          "highCholesterolRate": 0.188105
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-2/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.007266,
+          "highBpRate": 0.074167,
+          "highCholesterolRate": 0.122025
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-2/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "heartDiseaseRate": 0.006931,
+          "highBpRate": 0.162185,
+          "highCholesterolRate": 0.129193
+        }
+      ]
+    }
+  ]
+}

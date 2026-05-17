@@ -1,0 +1,12 @@
+kaggle
+pyspark==3.5.0
+pyarrow
+pandas
+duckdb
+rdflib
+numpy
+scikit-learn
+matplotlib
+seaborn
+jupyterlab
+ipykernel

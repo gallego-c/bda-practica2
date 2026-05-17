@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from pathlib import Path
 
 from pyspark.sql import SparkSession
 
@@ -24,19 +25,54 @@ log = logging.getLogger(__name__)
 
 
 def get_spark() -> SparkSession:
+    configure_java_home()
+    java_options = configure_hadoop_home()
     python_exec = sys.executable
     os.environ["PYSPARK_PYTHON"] = python_exec
     os.environ["PYSPARK_DRIVER_PYTHON"] = python_exec
 
-    return (
+    builder = (
         SparkSession.builder
         .appName("TrustedZone_DataQualityPipeline")
         .master(os.getenv("SPARK_MASTER", "local[*]"))
         .config("spark.sql.shuffle.partitions", "4")
         .config("spark.pyspark.python", python_exec)
         .config("spark.pyspark.driver.python", python_exec)
-        .getOrCreate()
     )
+    if java_options:
+        builder = (
+            builder
+            .config("spark.driver.extraJavaOptions", java_options)
+            .config("spark.executor.extraJavaOptions", java_options)
+        )
+    return builder.getOrCreate()
+
+
+def configure_java_home() -> None:
+    if os.environ.get("JAVA_HOME"):
+        return
+    try:
+        import jdk4py
+    except ImportError:
+        return
+
+    java_home = Path(jdk4py.JAVA_HOME)
+    os.environ["JAVA_HOME"] = str(java_home)
+    os.environ["PATH"] = str(java_home / "bin") + os.pathsep + os.environ.get("PATH", "")
+
+
+def configure_hadoop_home() -> str:
+    project_root = Path(__file__).resolve().parent.parent
+    hadoop_home = project_root / ".hadoop"
+    hadoop_bin = hadoop_home / "bin"
+    if not (hadoop_bin / "winutils.exe").exists():
+        return ""
+
+    hadoop_home_java = hadoop_home.as_posix()
+    hadoop_bin_java = hadoop_bin.as_posix()
+    os.environ["HADOOP_HOME"] = hadoop_home_java
+    os.environ["PATH"] = str(hadoop_bin) + os.pathsep + os.environ.get("PATH", "")
+    return f"-Djava.library.path={hadoop_bin_java} -Dhadoop.home.dir={hadoop_home_java}"
 
 
 def main() -> None:

@@ -1,6 +1,6 @@
 # Part5 Analysis Zone
 
-This zone implements two predictive analysis pipelines on top of the same integrated table generated in `Part4_Exploitation_zone`.
+This zone implements two predictive analysis pipelines on top of the compatibility analytical table generated in `Part4_Exploitation_zone`, plus one SPARQL-based graph analysis pipeline for P2.
 
 ## Goal
 
@@ -9,11 +9,14 @@ To satisfy the analytical requirement of the project with at least two reproduci
 - the model is not trained separately per original dataset
 - the three sources are loaded together from `exploitation.risk_model_input`
 - two pipelines with different feature sets are compared
+- the KG-based Exploitation Zone is consumed through SPARQL for graph-native analysis
 
 ## Main Scripts
 
 - `analysis_pipeline.py`
   Part5 orchestrator.
+- `kg_analysis_pipeline.py`
+  Loads the compact RDF analytics graph and executes SPARQL queries.
 - `analysis_utils.py`
   Data loading, shared preprocessing, validation, and persistence.
 - `model_pipeline_integrated_core.py`
@@ -27,12 +30,14 @@ To satisfy the analytical requirement of the project with at least two reproduci
 conda activate bda_practica
 cd /path/to/bda-practica1
 python Part5_Analysis_zone/analysis_pipeline.py
+python Part5_Analysis_zone/kg_analysis_pipeline.py
 ```
 
 ## Input
 
 - `Part4_Exploitation_zone/exploitation_zone/exploitation.duckdb`
 - table: `exploitation.risk_model_input`
+- `Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl`
 
 ## Outputs
 
@@ -41,6 +46,17 @@ python Part5_Analysis_zone/analysis_pipeline.py
 - `Part5_Analysis_zone/reports/integrated_core_report.json`
 - `Part5_Analysis_zone/reports/integrated_enriched_report.json`
 - `Part5_Analysis_zone/reports/summary_report.json`
+- `Part5_Analysis_zone/reports/kg_analysis_report.json`
+
+## KG Analysis Pipeline
+
+`kg_analysis_pipeline.py` consumes the semantic layer directly instead of flattening it back into a table. It runs SPARQL queries that:
+
+- identify indicators shared by multiple datasets
+- rank population groups by heart disease outcome rate
+- combine graph-linked indicators for the same age/gender group
+
+This demonstrates how the Exploitation Zone can serve graph-based analysis, dashboards, GraphDB exploration, and external semantic tools.
 
 ## How the Two Pipelines Work
 

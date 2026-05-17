@@ -1,13 +1,15 @@
 # Part3 Trusted Zone
 
-The Trusted Zone applies data quality rules to the formatted tables and produces clean, traceable datasets ready for integration.
+The Trusted Zone applies semantic standardization, data quality rules, denial constraints, quarantine, and audit reporting to the structurally formatted tables. It produces clean, traceable datasets ready for Knowledge Graph generation.
 
 ## Goal
 
-- validate ranges, domains, and logical consistency from `Part2`
+- receive structurally formatted tables from `Part2`
+- normalize source values into trusted canonical fields
+- validate ranges, domains, and logical consistency
 - send problematic records to quarantine
 - generate an auditable quality report
-- materialize clean trusted tables in DuckDB
+- materialize clean trusted tables in DuckDB as the main input for the KG pipeline
 
 ## Main Scripts
 
@@ -56,7 +58,20 @@ Versioned snapshots:
 
 As in Part2, obsolete DuckDB tables are removed when the current trusted state is materialized.
 
-## Dataset-Specific Logic
+## P2 changes
+
+The cleaning that previously lived too early in the Formatting Zone is now performed here. Trusted now owns:
+
+- age conversion and age-group derivation
+- gender and boolean normalization
+- BMI and health-risk derivations
+- controlled categorical mappings
+- range, domain, uniqueness, and consistency checks
+- quarantine and quality metrics
+
+The output tables are reliable enough to be transformed into RDF resources in `Part4_Exploitation_zone`.
+
+## Dataset-specific logic
 
 ### `cardiovascular_disease`
 

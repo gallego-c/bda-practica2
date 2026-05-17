@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import duckdb
+import pandas as pd
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import types as T
 
@@ -63,19 +64,6 @@ def write_quality_and_quarantine(
     run_id: str,
     log,
 ) -> tuple[Path, Path]:
-    quality_schema = T.StructType([
-        T.StructField("run_id", T.StringType(), False),
-        T.StructField("dataset", T.StringType(), False),
-        T.StructField("rule_name", T.StringType(), False),
-        T.StructField("total_rows", T.IntegerType(), False),
-        T.StructField("violations", T.IntegerType(), False),
-        T.StructField("violation_pct", T.DoubleType(), False),
-        T.StructField("action_applied", T.StringType(), False),
-        T.StructField("measured_at_utc", T.StringType(), False),
-    ])
-    quality_df = spark.createDataFrame(quality_metrics, schema=quality_schema)
-    quality_path = write_parquet_snapshot(quality_df, "quality_report", run_id, log)
-
     quarantine_schema = T.StructType([
         T.StructField("run_id", T.StringType(), False),
         T.StructField("dataset", T.StringType(), False),
@@ -83,6 +71,25 @@ def write_quality_and_quarantine(
         T.StructField("quarantine_reason", T.StringType(), False),
         T.StructField("quarantined_at_utc", T.StringType(), False),
     ])
+
+    quality_path = TRUSTED_PARQUET_ROOT / "quality_report" / run_id
+    quality_path.mkdir(parents=True, exist_ok=True)
+    quality_file = quality_path / "quality_report.parquet"
+    log.info("Writing trusted snapshot quality_report -> %s", quality_file)
+    pd.DataFrame(
+        quality_metrics,
+        columns=[
+            "run_id",
+            "dataset",
+            "rule_name",
+            "total_rows",
+            "violations",
+            "violation_pct",
+            "action_applied",
+            "measured_at_utc",
+        ],
+    ).to_parquet(quality_file, index=False)
+
     if quarantine_dfs:
         quarantine_df = quarantine_dfs[0]
         for qdf in quarantine_dfs[1:]:

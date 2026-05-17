@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import duckdb
@@ -26,14 +27,58 @@ DUCKDB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def get_spark() -> SparkSession:
-    return (
+    configure_java_home()
+    java_options = configure_hadoop_home()
+    python_exec = sys.executable
+    os.environ["PYSPARK_PYTHON"] = python_exec
+    os.environ["PYSPARK_DRIVER_PYTHON"] = python_exec
+
+    builder = (
         SparkSession.builder
-        .appName("FormattedZone_DataFormattingPipeline")
+        .appName("FormattedZone_StructuralFormattingPipeline")
         .master(os.getenv("SPARK_MASTER", "local[*]"))
         .config("spark.sql.shuffle.partitions", "4")
         .config("spark.sql.legacy.timeParserPolicy", "LEGACY")
-        .getOrCreate()
+        .config("spark.pyspark.python", python_exec)
+        .config("spark.pyspark.driver.python", python_exec)
     )
+    if java_options:
+        builder = (
+            builder
+            .config("spark.driver.extraJavaOptions", java_options)
+            .config("spark.executor.extraJavaOptions", java_options)
+        )
+    return builder.getOrCreate()
+
+
+def configure_java_home() -> None:
+    if os.environ.get("JAVA_HOME"):
+        return
+    try:
+        import jdk4py
+    except ImportError:
+        return
+
+    java_home = Path(jdk4py.JAVA_HOME)
+    os.environ["JAVA_HOME"] = str(java_home)
+    os.environ["PATH"] = str(java_home / "bin") + os.pathsep + os.environ.get("PATH", "")
+
+
+def configure_hadoop_home() -> str:
+    hadoop_home = PROJECT_ROOT / ".hadoop"
+    hadoop_bin = hadoop_home / "bin"
+    if not (hadoop_bin / "winutils.exe").exists():
+        return ""
+
+    hadoop_home_java = hadoop_home.as_posix()
+    hadoop_bin_java = hadoop_bin.as_posix()
+    os.environ["HADOOP_HOME"] = hadoop_home_java
+    os.environ["PATH"] = str(hadoop_bin) + os.pathsep + os.environ.get("PATH", "")
+    return f"-Djava.library.path={hadoop_bin_java} -Dhadoop.home.dir={hadoop_home_java}"
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def quote_identifier(identifier: str) -> str:
@@ -46,8 +91,19 @@ def normalize_column_name(name: str) -> str:
     return normalized.lower()
 
 
+def normalize_column_names(names: list[str]) -> list[str]:
+    seen: dict[str, int] = {}
+    normalized_names = []
+    for raw_name in names:
+        base_name = normalize_column_name(raw_name) or "column"
+        count = seen.get(base_name, 0)
+        seen[base_name] = count + 1
+        normalized_names.append(base_name if count == 0 else f"{base_name}_{count + 1}")
+    return normalized_names
+
+
 def normalize_columns(df: DataFrame) -> DataFrame:
-    return df.toDF(*[normalize_column_name(col_name) for col_name in df.columns])
+    return df.toDF(*normalize_column_names(df.columns))
 
 
 def log_schema(df: DataFrame, label: str) -> None:
@@ -70,35 +126,6 @@ def find_latest_parquet(dataset_name: str) -> Path:
     return parquet_path
 
 
-def parse_binary(column: F.Column) -> F.Column:
-    text = F.lower(F.trim(column.cast(T.StringType())))
-    return (
-        F.when(text.isin("1", "1.0", "true", "yes", "y"), F.lit(True))
-        .when(text.isin("0", "0.0", "false", "no", "n"), F.lit(False))
-        .otherwise(F.lit(None).cast(T.BooleanType()))
-    )
-
-
-def parse_binary_or_positive(column: F.Column) -> F.Column:
-    text = F.lower(F.trim(column.cast(T.StringType())))
-    return (
-        F.when(text.rlike(r"^-?\d+(\.\d+)?$") & (column.cast(T.DoubleType()) > 0), F.lit(True))
-        .when(text.rlike(r"^-?\d+(\.\d+)?$") & (column.cast(T.DoubleType()) == 0), F.lit(False))
-        .when(text.isin("true", "yes", "y"), F.lit(True))
-        .when(text.isin("false", "no", "n"), F.lit(False))
-        .otherwise(F.lit(None).cast(T.BooleanType()))
-    )
-
-
-def parse_gender(column: F.Column, female_tokens: list[str], male_tokens: list[str]) -> F.Column:
-    text = F.lower(F.trim(column.cast(T.StringType())))
-    return (
-        F.when(text.isin(*female_tokens), F.lit("female"))
-        .when(text.isin(*male_tokens), F.lit("male"))
-        .otherwise(F.lit(None).cast(T.StringType()))
-    )
-
-
 def normalize_single_delimited_column(
     df: DataFrame,
     expected_columns: list[str],
@@ -112,7 +139,7 @@ def normalize_single_delimited_column(
         header = [normalize_column_name(part) for part in only_col.split(delimiter)]
         if header == expected_columns:
             log.warning(
-                "[%s] Detected single-column raw ingestion with delimiter '%s'; expanding it.",
+                "[%s] Detected single-column raw ingestion with delimiter '%s'; expanding it structurally.",
                 dataset_name,
                 delimiter,
             )
@@ -127,253 +154,60 @@ def normalize_single_delimited_column(
     return df
 
 
-def age_group_code_from_years(column: F.Column) -> F.Column:
-    return (
-        F.when(column.isNull(), F.lit(None).cast(T.IntegerType()))
-        .when(column < 25, F.lit(1))
-        .when(column < 30, F.lit(2))
-        .when(column < 35, F.lit(3))
-        .when(column < 40, F.lit(4))
-        .when(column < 45, F.lit(5))
-        .when(column < 50, F.lit(6))
-        .when(column < 55, F.lit(7))
-        .when(column < 60, F.lit(8))
-        .when(column < 65, F.lit(9))
-        .when(column < 70, F.lit(10))
-        .when(column < 75, F.lit(11))
-        .when(column < 80, F.lit(12))
-        .otherwise(F.lit(13))
-    )
-
-
-def cdc_age_code_from_column(column: F.Column) -> F.Column:
-    text = F.lower(F.trim(column.cast(T.StringType())))
-    return (
-        F.when(text.rlike(r"^\d+(\.0+)?$"), column.cast(T.IntegerType()))
-        .when(text == "18 to 24", F.lit(1))
-        .when(text == "25 to 29", F.lit(2))
-        .when(text == "30 to 34", F.lit(3))
-        .when(text == "35 to 39", F.lit(4))
-        .when(text == "40 to 44", F.lit(5))
-        .when(text == "45 to 49", F.lit(6))
-        .when(text == "50 to 54", F.lit(7))
-        .when(text == "55 to 59", F.lit(8))
-        .when(text == "60 to 64", F.lit(9))
-        .when(text == "65 to 69", F.lit(10))
-        .when(text == "70 to 74", F.lit(11))
-        .when(text == "75 to 79", F.lit(12))
-        .when(text == "80 or older", F.lit(13))
-        .otherwise(F.lit(None).cast(T.IntegerType()))
-    )
-
-
-def cdc_age_midpoint_from_code(column: F.Column) -> F.Column:
-    return (
-        F.when(column == 1, F.lit(21.0))
-        .when(column == 2, F.lit(27.0))
-        .when(column == 3, F.lit(32.0))
-        .when(column == 4, F.lit(37.0))
-        .when(column == 5, F.lit(42.0))
-        .when(column == 6, F.lit(47.0))
-        .when(column == 7, F.lit(52.0))
-        .when(column == 8, F.lit(57.0))
-        .when(column == 9, F.lit(62.0))
-        .when(column == 10, F.lit(67.0))
-        .when(column == 11, F.lit(72.0))
-        .when(column == 12, F.lit(77.0))
-        .when(column == 13, F.lit(82.0))
-        .otherwise(F.lit(None).cast(T.DoubleType()))
-    )
-
-
-def stable_record_key(df: DataFrame, prefix: str) -> F.Column:
+def stable_formatted_record_id(df: DataFrame, dataset_name: str) -> F.Column:
     raw_columns = [F.coalesce(F.col(col_name).cast(T.StringType()), F.lit("")) for col_name in df.columns]
-    return F.sha2(F.concat_ws("|", F.lit(prefix), *raw_columns), 256)
+    return F.sha2(F.concat_ws("|", F.lit(dataset_name), *raw_columns), 256)
+
+
+def structurally_format_dataset(
+    spark: SparkSession,
+    dataset_name: str,
+    expected_columns: list[str] | None = None,
+) -> DataFrame:
+    parquet_path = find_latest_parquet(dataset_name)
+    df_raw = spark.read.parquet(str(parquet_path))
+    if expected_columns:
+        df_raw = normalize_single_delimited_column(df_raw, expected_columns, dataset_name)
+
+    df_fmt = normalize_columns(df_raw)
+    log_schema(df_fmt, f"{dataset_name} [FORMATTED STRUCTURE]")
+
+    return (
+        df_fmt
+        .withColumn("_source_dataset", F.lit(dataset_name))
+        .withColumn("_formatted_record_id", stable_formatted_record_id(df_fmt, dataset_name))
+        .withColumn("_formatted_at_utc", F.lit(utc_now_iso()))
+    )
 
 
 def format_cardiovascular_disease(spark: SparkSession) -> DataFrame:
-    dataset_name = "cardiovascular_disease"
-    parquet_path = find_latest_parquet(dataset_name)
-    df_raw = spark.read.parquet(str(parquet_path))
-    expected_columns = [
-        "id",
-        "age",
-        "gender",
-        "height",
-        "weight",
-        "ap_hi",
-        "ap_lo",
-        "cholesterol",
-        "gluc",
-        "smoke",
-        "alco",
-        "active",
-        "cardio",
-    ]
-    df_raw = normalize_single_delimited_column(df_raw, expected_columns, dataset_name)
-    df_raw = normalize_columns(df_raw)
-    log_schema(df_raw, f"{dataset_name} [RAW]")
-
-    df_fmt = (
-        df_raw
-        .withColumn("patient_id", F.col("id").cast(T.StringType()))
-        .withColumn("age_years", F.floor(F.col("age").cast(T.DoubleType()) / F.lit(365.25)).cast(T.IntegerType()))
-        .withColumn("age_group_code", age_group_code_from_years(F.col("age_years")))
-        .withColumn(
+    return structurally_format_dataset(
+        spark,
+        "cardiovascular_disease",
+        [
+            "id",
+            "age",
             "gender",
-            parse_gender(F.col("gender"), ["1", "1.0", "female", "f"], ["2", "2.0", "male", "m"]),
-        )
-        .withColumn("height_cm", F.col("height").cast(T.DoubleType()))
-        .withColumn("weight_kg", F.col("weight").cast(T.DoubleType()))
-        .withColumn(
-            "bmi",
-            F.when(
-                F.col("height").cast(T.DoubleType()) > 0,
-                F.col("weight").cast(T.DoubleType()) / F.pow(F.col("height").cast(T.DoubleType()) / 100.0, 2),
-            ).otherwise(F.lit(None).cast(T.DoubleType())),
-        )
-        .withColumn("systolic_bp", F.col("ap_hi").cast(T.DoubleType()))
-        .withColumn("diastolic_bp", F.col("ap_lo").cast(T.DoubleType()))
-        .withColumn("cholesterol_level", F.col("cholesterol").cast(T.IntegerType()))
-        .withColumn("glucose_level", F.col("gluc").cast(T.IntegerType()))
-        .withColumn("is_smoker", parse_binary(F.col("smoke")))
-        .withColumn("drinks_alcohol", parse_binary(F.col("alco")))
-        .withColumn("is_active", parse_binary(F.col("active")))
-        .withColumn("has_cardiovascular_disease", parse_binary(F.col("cardio")))
-        .select(
-            "patient_id",
-            "age_years",
-            "age_group_code",
-            "gender",
-            "height_cm",
-            "weight_kg",
-            "bmi",
-            "systolic_bp",
-            "diastolic_bp",
-            "cholesterol_level",
-            "glucose_level",
-            "is_smoker",
-            "drinks_alcohol",
-            "is_active",
-            "has_cardiovascular_disease",
-        )
+            "height",
+            "weight",
+            "ap_hi",
+            "ap_lo",
+            "cholesterol",
+            "gluc",
+            "smoke",
+            "alco",
+            "active",
+            "cardio",
+        ],
     )
-    log_schema(df_fmt, f"{dataset_name} [FORMATTED]")
-    return df_fmt
 
 
 def format_heart_disease_health_indicators(spark: SparkSession) -> DataFrame:
-    dataset_name = "heart_disease_health_indicators"
-    parquet_path = find_latest_parquet(dataset_name)
-    df_raw = normalize_columns(spark.read.parquet(str(parquet_path)))
-    log_schema(df_raw, f"{dataset_name} [RAW]")
-
-    df_fmt = (
-        df_raw
-        .withColumn("respondent_id", stable_record_key(df_raw, "cdc"))
-        .withColumn("age_group_code", cdc_age_code_from_column(F.col("age")))
-        .withColumn("age_years_proxy", cdc_age_midpoint_from_code(F.col("age_group_code")))
-        .withColumn(
-            "gender",
-            parse_gender(F.col("sex"), ["0", "0.0", "female", "f"], ["1", "1.0", "male", "m"]),
-        )
-        .withColumn("bmi", F.col("bmi").cast(T.DoubleType()))
-        .withColumn("high_blood_pressure_flag", parse_binary(F.col("highbp")))
-        .withColumn("high_cholesterol_flag", parse_binary(F.col("highchol")))
-        .withColumn("chol_check_recent_flag", parse_binary(F.col("cholcheck")))
-        .withColumn("smoking_flag", parse_binary(F.col("smoker")))
-        .withColumn("stroke_history_flag", parse_binary(F.col("stroke")))
-        .withColumn("physical_activity_flag", parse_binary(F.col("physactivity")))
-        .withColumn("fruits_daily_flag", parse_binary(F.col("fruits")))
-        .withColumn("veggies_daily_flag", parse_binary(F.col("veggies")))
-        .withColumn("heavy_alcohol_flag", parse_binary(F.col("hvyalcoholconsump")))
-        .withColumn("any_healthcare_flag", parse_binary(F.col("anyhealthcare")))
-        .withColumn("no_doctor_cost_flag", parse_binary(F.col("nodocbccost")))
-        .withColumn("general_health_score", F.col("genhlth").cast(T.IntegerType()))
-        .withColumn("mental_unhealthy_days", F.col("menthlth").cast(T.DoubleType()))
-        .withColumn("physical_unhealthy_days", F.col("physhlth").cast(T.DoubleType()))
-        .withColumn("difficulty_walking_flag", parse_binary(F.col("diffwalk")))
-        .withColumn("education_level", F.col("education").cast(T.IntegerType()))
-        .withColumn("income_level", F.col("income").cast(T.IntegerType()))
-        .withColumn("has_heart_disease", parse_binary(F.col("heartdiseaseorattack")))
-        .select(
-            "respondent_id",
-            "age_group_code",
-            "age_years_proxy",
-            "gender",
-            "bmi",
-            "high_blood_pressure_flag",
-            "high_cholesterol_flag",
-            "chol_check_recent_flag",
-            "smoking_flag",
-            "stroke_history_flag",
-            "physical_activity_flag",
-            "fruits_daily_flag",
-            "veggies_daily_flag",
-            "heavy_alcohol_flag",
-            "any_healthcare_flag",
-            "no_doctor_cost_flag",
-            "general_health_score",
-            "mental_unhealthy_days",
-            "physical_unhealthy_days",
-            "difficulty_walking_flag",
-            "education_level",
-            "income_level",
-            "has_heart_disease",
-        )
-    )
-    log_schema(df_fmt, f"{dataset_name} [FORMATTED]")
-    return df_fmt
+    return structurally_format_dataset(spark, "heart_disease_health_indicators")
 
 
 def format_cleveland(spark: SparkSession) -> DataFrame:
-    dataset_name = "heart_disease_cleveland"
-    parquet_path = find_latest_parquet(dataset_name)
-    df_raw = normalize_columns(spark.read.parquet(str(parquet_path)))
-    log_schema(df_raw, f"{dataset_name} [RAW]")
-
-    df_fmt = (
-        df_raw
-        .withColumn("record_key", stable_record_key(df_raw, "cleveland"))
-        .withColumn("age_years", F.col("age").cast(T.IntegerType()))
-        .withColumn("age_group_code", age_group_code_from_years(F.col("age_years")))
-        .withColumn(
-            "gender",
-            parse_gender(F.col("sex"), ["0", "0.0", "female", "f"], ["1", "1.0", "male", "m"]),
-        )
-        .withColumn("chest_pain_type", F.col("cp").cast(T.IntegerType()))
-        .withColumn("resting_bp", F.col("trestbps").cast(T.DoubleType()))
-        .withColumn("serum_cholesterol", F.col("chol").cast(T.DoubleType()))
-        .withColumn("fasting_blood_sugar_high", parse_binary(F.col("fbs")))
-        .withColumn("resting_ecg", F.col("restecg").cast(T.IntegerType()))
-        .withColumn("max_heart_rate", F.col("thalach").cast(T.DoubleType()))
-        .withColumn("exercise_induced_angina", parse_binary(F.col("exang")))
-        .withColumn("st_depression", F.col("oldpeak").cast(T.DoubleType()))
-        .withColumn("st_slope", F.col("slope").cast(T.IntegerType()))
-        .withColumn("num_major_vessels", F.col("ca").cast(T.IntegerType()))
-        .withColumn("thalassemia_type", F.col("thal").cast(T.IntegerType()))
-        .withColumn("has_heart_disease", parse_binary_or_positive(F.col("condition")))
-        .select(
-            "record_key",
-            "age_years",
-            "age_group_code",
-            "gender",
-            "chest_pain_type",
-            "resting_bp",
-            "serum_cholesterol",
-            "fasting_blood_sugar_high",
-            "resting_ecg",
-            "max_heart_rate",
-            "exercise_induced_angina",
-            "st_depression",
-            "st_slope",
-            "num_major_vessels",
-            "thalassemia_type",
-            "has_heart_disease",
-        )
-    )
-    log_schema(df_fmt, f"{dataset_name} [FORMATTED]")
-    return df_fmt
+    return structurally_format_dataset(spark, "heart_disease_cleveland")
 
 
 def write_to_duckdb(df_pandas, table_name: str, con: duckdb.DuckDBPyConnection) -> None:

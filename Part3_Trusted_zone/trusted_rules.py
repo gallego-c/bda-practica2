@@ -31,6 +31,12 @@ def add_quality_metric(
     )
 
 
+def source_col(df: DataFrame, column_name: str) -> F.Column:
+    if column_name in df.columns:
+        return F.col(column_name)
+    return F.lit(None)
+
+
 def required_range(column_name: str, lower: float, upper: float) -> F.Column:
     return F.coalesce((F.col(column_name) >= lower) & (F.col(column_name) <= upper), F.lit(False))
 
@@ -45,6 +51,104 @@ def required_domain(column_name: str, valid_values: Iterable) -> F.Column:
 
 def required_not_null(column_name: str) -> F.Column:
     return F.col(column_name).isNotNull()
+
+
+def parse_binary(column: F.Column) -> F.Column:
+    text = F.lower(F.trim(column.cast(T.StringType())))
+    return (
+        F.when(text.isin("1", "1.0", "true", "yes", "y"), F.lit(True))
+        .when(text.isin("0", "0.0", "false", "no", "n"), F.lit(False))
+        .otherwise(F.lit(None).cast(T.BooleanType()))
+    )
+
+
+def parse_binary_or_positive(column: F.Column) -> F.Column:
+    text = F.lower(F.trim(column.cast(T.StringType())))
+    numeric = column.cast(T.DoubleType())
+    return (
+        F.when(text.rlike(r"^-?\d+(\.\d+)?$") & (numeric > 0), F.lit(True))
+        .when(text.rlike(r"^-?\d+(\.\d+)?$") & (numeric == 0), F.lit(False))
+        .when(text.isin("true", "yes", "y"), F.lit(True))
+        .when(text.isin("false", "no", "n"), F.lit(False))
+        .otherwise(F.lit(None).cast(T.BooleanType()))
+    )
+
+
+def parse_gender(column: F.Column, female_tokens: list[str], male_tokens: list[str]) -> F.Column:
+    text = F.lower(F.trim(column.cast(T.StringType())))
+    return (
+        F.when(text.isin(*female_tokens), F.lit("female"))
+        .when(text.isin(*male_tokens), F.lit("male"))
+        .otherwise(F.lit(None).cast(T.StringType()))
+    )
+
+
+def age_group_code_from_years(column: F.Column) -> F.Column:
+    return (
+        F.when(column.isNull(), F.lit(None).cast(T.IntegerType()))
+        .when(column < 25, F.lit(1))
+        .when(column < 30, F.lit(2))
+        .when(column < 35, F.lit(3))
+        .when(column < 40, F.lit(4))
+        .when(column < 45, F.lit(5))
+        .when(column < 50, F.lit(6))
+        .when(column < 55, F.lit(7))
+        .when(column < 60, F.lit(8))
+        .when(column < 65, F.lit(9))
+        .when(column < 70, F.lit(10))
+        .when(column < 75, F.lit(11))
+        .when(column < 80, F.lit(12))
+        .otherwise(F.lit(13))
+    )
+
+
+def cdc_age_code_from_column(column: F.Column) -> F.Column:
+    text = F.lower(F.trim(column.cast(T.StringType())))
+    return (
+        F.when(text.rlike(r"^\d+(\.0+)?$"), column.cast(T.IntegerType()))
+        .when(text == "18 to 24", F.lit(1))
+        .when(text == "25 to 29", F.lit(2))
+        .when(text == "30 to 34", F.lit(3))
+        .when(text == "35 to 39", F.lit(4))
+        .when(text == "40 to 44", F.lit(5))
+        .when(text == "45 to 49", F.lit(6))
+        .when(text == "50 to 54", F.lit(7))
+        .when(text == "55 to 59", F.lit(8))
+        .when(text == "60 to 64", F.lit(9))
+        .when(text == "65 to 69", F.lit(10))
+        .when(text == "70 to 74", F.lit(11))
+        .when(text == "75 to 79", F.lit(12))
+        .when(text == "80 or older", F.lit(13))
+        .otherwise(F.lit(None).cast(T.IntegerType()))
+    )
+
+
+def cdc_age_midpoint_from_code(column: F.Column) -> F.Column:
+    return (
+        F.when(column == 1, F.lit(21.0))
+        .when(column == 2, F.lit(27.0))
+        .when(column == 3, F.lit(32.0))
+        .when(column == 4, F.lit(37.0))
+        .when(column == 5, F.lit(42.0))
+        .when(column == 6, F.lit(47.0))
+        .when(column == 7, F.lit(52.0))
+        .when(column == 8, F.lit(57.0))
+        .when(column == 9, F.lit(62.0))
+        .when(column == 10, F.lit(67.0))
+        .when(column == 11, F.lit(72.0))
+        .when(column == 12, F.lit(77.0))
+        .when(column == 13, F.lit(82.0))
+        .otherwise(F.lit(None).cast(T.DoubleType()))
+    )
+
+
+def stable_record_key(df: DataFrame, prefix: str) -> F.Column:
+    raw_columns = [
+        F.coalesce(F.col(col_name).cast(T.StringType()), F.lit(""))
+        for col_name in df.columns
+        if not col_name.startswith("_")
+    ]
+    return F.sha2(F.concat_ws("|", F.lit(prefix), *raw_columns), 256)
 
 
 def build_quarantine(
@@ -76,13 +180,146 @@ def finalize_cleaned(df: DataFrame, all_ok: F.Column, run_id: str) -> DataFrame:
     )
 
 
+def standardize_cardiovascular(df_raw: DataFrame) -> DataFrame:
+    height = source_col(df_raw, "height").cast(T.DoubleType())
+    weight = source_col(df_raw, "weight").cast(T.DoubleType())
+    age_years = F.floor(source_col(df_raw, "age").cast(T.DoubleType()) / F.lit(365.25)).cast(T.IntegerType())
+    df = df_raw.select(
+        source_col(df_raw, "id").cast(T.StringType()).alias("patient_id"),
+        age_years.alias("age_years"),
+        parse_gender(source_col(df_raw, "gender"), ["1", "1.0", "female", "f"], ["2", "2.0", "male", "m"]).alias("gender"),
+        height.alias("height_cm"),
+        weight.alias("weight_kg"),
+        F.when(height > 0, weight / F.pow(height / 100.0, 2)).otherwise(F.lit(None).cast(T.DoubleType())).alias("bmi"),
+        source_col(df_raw, "ap_hi").cast(T.DoubleType()).alias("systolic_bp"),
+        source_col(df_raw, "ap_lo").cast(T.DoubleType()).alias("diastolic_bp"),
+        source_col(df_raw, "cholesterol").cast(T.IntegerType()).alias("cholesterol_level"),
+        source_col(df_raw, "gluc").cast(T.IntegerType()).alias("glucose_level"),
+        parse_binary(source_col(df_raw, "smoke")).alias("is_smoker"),
+        parse_binary(source_col(df_raw, "alco")).alias("drinks_alcohol"),
+        parse_binary(source_col(df_raw, "active")).alias("is_active"),
+        parse_binary(source_col(df_raw, "cardio")).alias("has_cardiovascular_disease"),
+    )
+    return df.withColumn("age_group_code", age_group_code_from_years(F.col("age_years"))).select(
+        "patient_id",
+        "age_years",
+        "age_group_code",
+        "gender",
+        "height_cm",
+        "weight_kg",
+        "bmi",
+        "systolic_bp",
+        "diastolic_bp",
+        "cholesterol_level",
+        "glucose_level",
+        "is_smoker",
+        "drinks_alcohol",
+        "is_active",
+        "has_cardiovascular_disease",
+    )
+
+
+def standardize_cdc_indicators(df_raw: DataFrame) -> DataFrame:
+    age_group_code = cdc_age_code_from_column(source_col(df_raw, "age"))
+    respondent_id = F.coalesce(source_col(df_raw, "_formatted_record_id").cast(T.StringType()), stable_record_key(df_raw, "cdc"))
+    df = df_raw.select(
+        respondent_id.alias("respondent_id"),
+        age_group_code.alias("age_group_code"),
+        parse_gender(source_col(df_raw, "sex"), ["0", "0.0", "female", "f"], ["1", "1.0", "male", "m"]).alias("gender"),
+        source_col(df_raw, "bmi").cast(T.DoubleType()).alias("bmi"),
+        parse_binary(source_col(df_raw, "highbp")).alias("high_blood_pressure_flag"),
+        parse_binary(source_col(df_raw, "highchol")).alias("high_cholesterol_flag"),
+        parse_binary(source_col(df_raw, "cholcheck")).alias("chol_check_recent_flag"),
+        parse_binary(source_col(df_raw, "smoker")).alias("smoking_flag"),
+        parse_binary(source_col(df_raw, "stroke")).alias("stroke_history_flag"),
+        parse_binary(source_col(df_raw, "physactivity")).alias("physical_activity_flag"),
+        parse_binary(source_col(df_raw, "fruits")).alias("fruits_daily_flag"),
+        parse_binary(source_col(df_raw, "veggies")).alias("veggies_daily_flag"),
+        parse_binary(source_col(df_raw, "hvyalcoholconsump")).alias("heavy_alcohol_flag"),
+        parse_binary(source_col(df_raw, "anyhealthcare")).alias("any_healthcare_flag"),
+        parse_binary(source_col(df_raw, "nodocbccost")).alias("no_doctor_cost_flag"),
+        source_col(df_raw, "genhlth").cast(T.IntegerType()).alias("general_health_score"),
+        source_col(df_raw, "menthlth").cast(T.DoubleType()).alias("mental_unhealthy_days"),
+        source_col(df_raw, "physhlth").cast(T.DoubleType()).alias("physical_unhealthy_days"),
+        parse_binary(source_col(df_raw, "diffwalk")).alias("difficulty_walking_flag"),
+        source_col(df_raw, "education").cast(T.IntegerType()).alias("education_level"),
+        source_col(df_raw, "income").cast(T.IntegerType()).alias("income_level"),
+        parse_binary(source_col(df_raw, "heartdiseaseorattack")).alias("has_heart_disease"),
+    )
+    return df.withColumn("age_years_proxy", cdc_age_midpoint_from_code(F.col("age_group_code"))).select(
+        "respondent_id",
+        "age_group_code",
+        "age_years_proxy",
+        "gender",
+        "bmi",
+        "high_blood_pressure_flag",
+        "high_cholesterol_flag",
+        "chol_check_recent_flag",
+        "smoking_flag",
+        "stroke_history_flag",
+        "physical_activity_flag",
+        "fruits_daily_flag",
+        "veggies_daily_flag",
+        "heavy_alcohol_flag",
+        "any_healthcare_flag",
+        "no_doctor_cost_flag",
+        "general_health_score",
+        "mental_unhealthy_days",
+        "physical_unhealthy_days",
+        "difficulty_walking_flag",
+        "education_level",
+        "income_level",
+        "has_heart_disease",
+    )
+
+
+def standardize_cleveland(df_raw: DataFrame) -> DataFrame:
+    record_key = F.coalesce(source_col(df_raw, "_formatted_record_id").cast(T.StringType()), stable_record_key(df_raw, "cleveland"))
+    df = df_raw.select(
+        record_key.alias("record_key"),
+        source_col(df_raw, "age").cast(T.IntegerType()).alias("age_years"),
+        parse_gender(source_col(df_raw, "sex"), ["0", "0.0", "female", "f"], ["1", "1.0", "male", "m"]).alias("gender"),
+        source_col(df_raw, "cp").cast(T.IntegerType()).alias("chest_pain_type"),
+        source_col(df_raw, "trestbps").cast(T.DoubleType()).alias("resting_bp"),
+        source_col(df_raw, "chol").cast(T.DoubleType()).alias("serum_cholesterol"),
+        parse_binary(source_col(df_raw, "fbs")).alias("fasting_blood_sugar_high"),
+        source_col(df_raw, "restecg").cast(T.IntegerType()).alias("resting_ecg"),
+        source_col(df_raw, "thalach").cast(T.DoubleType()).alias("max_heart_rate"),
+        parse_binary(source_col(df_raw, "exang")).alias("exercise_induced_angina"),
+        source_col(df_raw, "oldpeak").cast(T.DoubleType()).alias("st_depression"),
+        source_col(df_raw, "slope").cast(T.IntegerType()).alias("st_slope"),
+        source_col(df_raw, "ca").cast(T.IntegerType()).alias("num_major_vessels"),
+        source_col(df_raw, "thal").cast(T.IntegerType()).alias("thalassemia_type"),
+        parse_binary_or_positive(source_col(df_raw, "condition")).alias("has_heart_disease"),
+    )
+    return df.withColumn("age_group_code", age_group_code_from_years(F.col("age_years"))).select(
+        "record_key",
+        "age_years",
+        "age_group_code",
+        "gender",
+        "chest_pain_type",
+        "resting_bp",
+        "serum_cholesterol",
+        "fasting_blood_sugar_high",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_induced_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia_type",
+        "has_heart_disease",
+    )
+
+
 def clean_cardiovascular(df_raw: DataFrame, run_id: str, metrics: list[dict]) -> tuple[DataFrame, DataFrame]:
     dataset = "cardiovascular_disease"
-    total_rows = df_raw.count()
+    df_standard = standardize_cardiovascular(df_raw)
+    total_rows = df_standard.count()
 
     dup_window = Window.partitionBy("patient_id").orderBy(F.col("patient_id"))
     df = (
-        df_raw
+        df_standard
         .withColumn("_rule_patient_id_present", required_not_null("patient_id"))
         .withColumn("_rule_age_range", required_range("age_years", 18, 100))
         .withColumn("_rule_age_group_code", required_range("age_group_code", 1, 13))
@@ -174,10 +411,11 @@ def clean_cardiovascular(df_raw: DataFrame, run_id: str, metrics: list[dict]) ->
 
 def clean_cdc_indicators(df_raw: DataFrame, run_id: str, metrics: list[dict]) -> tuple[DataFrame, DataFrame]:
     dataset = "heart_disease_health_indicators"
-    total_rows = df_raw.count()
+    df_standard = standardize_cdc_indicators(df_raw)
+    total_rows = df_standard.count()
 
     df = (
-        df_raw
+        df_standard
         .withColumn("_rule_respondent_id_present", required_not_null("respondent_id"))
         .withColumn("_rule_age_group_code", required_range("age_group_code", 1, 13))
         .withColumn("_rule_age_years_proxy", required_range("age_years_proxy", 18, 90))
@@ -269,11 +507,12 @@ def clean_cdc_indicators(df_raw: DataFrame, run_id: str, metrics: list[dict]) ->
 
 def clean_cleveland(df_raw: DataFrame, run_id: str, metrics: list[dict]) -> tuple[DataFrame, DataFrame]:
     dataset = "heart_disease_cleveland"
-    total_rows = df_raw.count()
+    df_standard = standardize_cleveland(df_raw)
+    total_rows = df_standard.count()
 
     dup_window = Window.partitionBy("record_key").orderBy(F.col("record_key"))
     df = (
-        df_raw
+        df_standard
         .withColumn("_rule_record_key_present", required_not_null("record_key"))
         .withColumn("_rule_age_range", required_range("age_years", 18, 100))
         .withColumn("_rule_age_group_code", required_range("age_group_code", 1, 13))

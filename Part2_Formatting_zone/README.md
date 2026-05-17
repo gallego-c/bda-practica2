@@ -1,30 +1,51 @@
 # Part2 Formatting Zone
 
-The Formatting Zone converts raw Landing snapshots into one standardized table per dataset, with normalized column names and consistent data types.
+The Formatting Zone is now strictly structural. It reads the latest raw snapshots from the Landing Zone, normalizes the physical table structure, and stores one structured table per dataset in DuckDB.
 
 ## Goal
 
-- read the latest snapshot of each source from `Part1_Landing_zone/landing_zone/`
-- standardize schema and types with Spark
+- read raw Parquet snapshots from `Part1_Landing_zone/landing_zone/`
+- normalize column names into stable machine-friendly names
+- expand malformed single-column ingestions when a delimiter was preserved in the header
+- add technical lineage fields
 - persist one formatted table per dataset in DuckDB
 
-## Main Script
+## What belongs here
+
+- schema inference or schema definition
+- column-name normalization
+- table creation
+- storage format conversion
+- technical record fingerprints
+
+## What does not belong here
+
+The Formatting Zone must not apply cleaning or semantic transformations. In P2 the following tasks were moved to the Trusted Zone:
+
+- age conversion from days to years
+- age-band derivation
+- BMI calculation
+- gender normalization
+- boolean normalization
+- risk-factor derivation
+- hard range/domain validation
+- filtering, deduplication, and quarantine
+
+## Main script
 
 - `formatting_pipeline.py`
 
 ## Execution
 
 ```bash
-conda activate bda_practica
-cd /path/to/bda-practica1
 python Part2_Formatting_zone/formatting_pipeline.py
 ```
 
 ## Inputs
 
-- `landing_zone/cardiovascular_disease/...`
-- `landing_zone/heart_disease_health_indicators/...`
-- `landing_zone/heart_disease_cleveland/...`
+- `Part1_Landing_zone/landing_zone/cardiovascular_disease/...`
+- `Part1_Landing_zone/landing_zone/heart_disease_health_indicators/...`
+- `Part1_Landing_zone/landing_zone/heart_disease_cleveland/...`
 
 ## Outputs
 
@@ -38,36 +59,8 @@ Created tables:
 - `formatted.heart_disease_health_indicators`
 - `formatted.heart_disease_cleveland`
 
-The pipeline also removes obsolete tables from the `formatted` schema if they no longer belong to the current project configuration.
+Each table preserves the source meaning and adds:
 
-## What Is Standardized in This Stage
-
-### `cardiovascular_disease`
-
-- converts age from days to years
-- derives `age_group_code`
-- normalizes gender values
-- computes `bmi`
-- casts blood pressure, cholesterol, glucose, and target fields
-
-### `heart_disease_health_indicators`
-
-- normalizes binary and categorical CDC survey variables
-- maps age ranges to `age_group_code`
-- derives a numeric proxy age from the age band
-- standardizes health, activity, alcohol, and target fields
-
-### `heart_disease_cleveland`
-
-- casts clinical variables
-- normalizes gender
-- derives `age_group_code`
-- standardizes the heart disease target
-
-## What This Stage Does Not Do
-
-- it does not apply hard quality rules
-- it does not quarantine rows
-- it does not integrate the three sources yet
-
-Those tasks are handled in `Part3_Trusted_zone` and `Part4_Exploitation_zone`.
+- `_source_dataset`
+- `_formatted_record_id`
+- `_formatted_at_utc`

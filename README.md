@@ -1,6 +1,8 @@
-# BDA Practice 1
+# BDA Practice 2
 
-This project is a cardiovascular risk Data Engineering and Data Analysis workflow organized into five zones:
+This project extends the P1 cardiovascular-risk data pipeline with a Knowledge Graph-based Exploitation Zone.
+
+The five-zone architecture is preserved:
 
 1. `Part1_Landing_zone`
 2. `Part2_Formatting_zone`
@@ -8,211 +10,182 @@ This project is a cardiovascular risk Data Engineering and Data Analysis workflo
 4. `Part4_Exploitation_zone`
 5. `Part5_Analysis_zone`
 
-The project integrates three Kaggle data sources into a single analytical base and trains two different classification pipelines on top of that unified dataset.
+P2 focuses on the flow from Formatted to Exploitation. The main change is that the Exploitation Zone is no longer only a flat consolidated table: it now generates an RDF/RDFS Knowledge Graph from cleaned Trusted Zone datasets.
 
-## Data Sources
+## Data sources
 
 - `sulianova/cardiovascular-disease-dataset`
 - `alexteboul/heart-disease-health-indicators-dataset`
 - `cherngs/heart-disease-cleveland-uci`
 
-## Project Architecture
+## P2 architecture
 
 - `Part1_Landing_zone/`
-  Downloads data from Kaggle and stores raw Parquet snapshots.
+  Downloads raw source snapshots and stores raw Parquet data.
 - `Part2_Formatting_zone/`
-  Standardizes schema and data types with Spark.
+  Performs only structural formatting: column-name normalization, table creation, technical fingerprints, and DuckDB persistence.
 - `Part3_Trusted_zone/`
-  Applies data quality rules, cleaning, quarantine, and quality reporting.
+  Performs semantic standardization, quality rules, denial constraints, cleaning, quarantine, and quality reports.
 - `Part4_Exploitation_zone/`
-  Integrates and reconciles the three trusted sources into a canonical analytical table.
+  Builds the Knowledge Graph semantic layer from Trusted data using RDF/RDFS and RDFLib. It also keeps a compatibility table for the existing ML pipelines.
 - `Part5_Analysis_zone/`
-  Runs two predictive pipelines on the same integrated dataset.
-- `notebooks/`
-  Data validation and model result review.
-- `run_all_pipeline.py`
-  End-to-end orchestrator.
+  Runs the legacy predictive pipelines and a SPARQL-based KG analysis pipeline.
 
-## Recommended Environment
+## Main P2 fixes
 
-The most stable setup for this project is WSL Ubuntu.
+Formatting Zone was corrected so it no longer performs:
 
-- WSL2 with Ubuntu
-- Miniconda or Anaconda
-- Python 3.11
+- age conversion
+- BMI calculation
+- gender normalization
+- boolean normalization
+- risk-factor derivation
+- cleaning, validation, filtering, deduplication, or quarantine
+
+Those tasks now belong to the Trusted Zone, where the cleaned datasets become the input for the KG generation pipeline.
+
+## Knowledge Graph design
+
+The KG uses RDF/RDFS with the namespace:
+
+```text
+https://example.org/bda/health-risk/
+```
+
+Main classes:
+
+- `hr:HealthRecord`
+- `hr:Dataset`
+- `hr:PopulationGroup`
+- `hr:AgeGroup`
+- `hr:Gender`
+- `hr:Indicator`
+- `hr:AggregateMeasurement`
+- `hr:Outcome`
+- `hr:KnowledgeGraphRun`
+
+The datasets do not share a true person identifier, location, or timestamp. The KG therefore integrates them through shared semantic concepts that are present in all or several sources:
+
+- age group
+- gender
+- population group
+- health indicator
+- risk factor
+- outcome
+- dataset provenance
+
+This gives semantic homogenization without falsely merging unrelated people across datasets.
+
+Detailed schema and mapping documentation is in:
+
+- `Part4_Exploitation_zone/KG_METAMODEL.md`
+
+## KG technologies
+
+- RDF/RDFS for schema and graph modelling
+- RDFLib for triple generation and SPARQL validation
+- SPARQL for analytical graph queries
+- GraphDB as an optional external store for visualization and querying
+- DuckDB for formatted/trusted tables, compatibility views, and KG manifest discovery
+
+## Recommended environment
+
+- Python 3.11 or 3.12
 - Java JDK for Spark
-- Kaggle credentials for `Part1`
+- Kaggle credentials for Landing Zone if new downloads are required
 
-## Environment Setup
+### Repo-local environment on Windows
 
-The instructions below assume the project lives at:
+This repository can be run with a local `.venv` so dependency resolution does not depend on global Python or Java installs:
 
-```bash
-/path/to/bda-practica1
+```powershell
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements-local.txt
 ```
 
-### 1. Install Java in WSL
+`requirements-local.txt` installs the P1/P2 Python stack and a local Java 17 runtime through `jdk4py` on Windows. The Spark scripts auto-detect that local JDK if `JAVA_HOME` is not already set.
 
-```bash
-sudo apt update
-sudo apt install -y default-jdk
+For Windows PySpark local-file support, the repo also uses:
+
+```text
+.hadoop/bin/winutils.exe
+.hadoop/bin/hadoop.dll
 ```
 
-### 2. Create the conda environment
+The Spark scripts set `HADOOP_HOME` to `.hadoop` automatically when those files are present.
+
+### Generic environment
 
 ```bash
-conda create -n bda_practica python=3.11 -y
-conda activate bda_practica
-python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-### 3. Install project dependencies
+## Run the full pipeline
+
+If landing snapshots already exist:
 
 ```bash
-cd /path/to/bda-practica1
-pip install kaggle pyspark==3.5.0 pyarrow pandas duckdb numpy scikit-learn matplotlib seaborn jupyterlab ipykernel
+.venv/Scripts/python.exe run_all_pipeline.py --skip-landing --strict
 ```
 
-### 4. Register the Jupyter kernel
+Including Landing Zone:
 
 ```bash
-python -m ipykernel install --user --name bda_practica --display-name "Python (bda_practica)"
+.venv/Scripts/python.exe run_all_pipeline.py --strict
 ```
 
-## Kaggle Configuration
+## Main outputs
 
-To run the Landing Zone you need `~/.kaggle/kaggle.json`.
-
-```bash
-mkdir -p ~/.kaggle
-cp /path/to/your/kaggle.json ~/.kaggle/kaggle.json
-chmod 600 ~/.kaggle/kaggle.json
-```
-
-## Quick Start
-
-### Run the full pipeline without Landing
-
-Useful when snapshots already exist under `Part1_Landing_zone/landing_zone/`.
-
-```bash
-conda activate bda_practica
-cd /path/to/bda-practica1
-python run_all_pipeline.py --skip-landing --strict
-```
-
-### Run the full pipeline including Landing
-
-```bash
-conda activate bda_practica
-cd /path/to/bda-practica1
-python run_all_pipeline.py --strict
-```
-
-### Run an individual stage
-
-```bash
-conda activate bda_practica
-cd /path/to/bda-practica1
-
-python Part1_Landing_zone/data_collector.py
-python Part2_Formatting_zone/formatting_pipeline.py
-python Part3_Trusted_zone/trusted_pipeline.py
-python Part4_Exploitation_zone/exploitation_pipeline.py
-python Part5_Analysis_zone/analysis_pipeline.py
-```
-
-## Airflow
-
-Landing orchestration is implemented with an Airflow DAG:
-
-- DAG id: `landing_zone_data_collector`
-- file: `Part1_Landing_zone/airflow_dag.py`
-- schedule: `0 2 * * *`
-
-High-level setup steps:
-
-1. Activate the `bda_practica` environment
-2. Install Airflow with constraints
-3. Define `AIRFLOW_HOME`
-4. Symlink `airflow_dag.py` and `data_collector.py` into `dags/`
-5. Set the `KAGGLE_USERNAME` and `KAGGLE_KEY` Airflow variables
-6. Run `airflow standalone`
-
-The detailed guide is available in [Part1_Landing_zone/README.md](Part1_Landing_zone/README.md).
-
-## Main Outputs
-
-- Landing raw data:
-  `Part1_Landing_zone/landing_zone/`
 - Formatted DB:
   `Part2_Formatting_zone/formatted_zone/formatted.duckdb`
 - Trusted DB:
   `Part3_Trusted_zone/trusted_zone/trusted.duckdb`
 - Exploitation DB:
   `Part4_Exploitation_zone/exploitation_zone/exploitation.duckdb`
-- Models:
-  `Part5_Analysis_zone/models/`
-- Reports:
-  `Part5_Analysis_zone/reports/`
+- Full KG:
+  `Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.ttl`
+- Compact analytics KG:
+  `Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl`
+- RDFS schema:
+  `Part4_Exploitation_zone/exploitation_zone/kg/schema/health_risk_schema.ttl`
+- SPARQL examples:
+  `Part4_Exploitation_zone/exploitation_zone/kg/sparql/`
+- KG manifest:
+  `Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json`
+- KG analysis report:
+  `Part5_Analysis_zone/reports/kg_analysis_report.json`
 
-## What Gets Integrated
+## Exploitation Zone assets
 
-The final integration does not keep the sources separated for model training. The three sources are harmonized into a single canonical table:
+The KG is the main P2 exploitation asset. The pipeline also writes:
 
 - `exploitation.risk_model_input`
+- `exploitation.dataset_profile`
+- `kg.graph_manifest`
 
-This unified table contains reconciled shared variables plus lineage fields:
+The flat table is retained for compatibility with the P1 machine-learning analysis, while `kg.graph_manifest` exposes the semantic artifacts to downstream tools.
 
-- `source_dataset`
-- `source_record_id`
-- `age_years_proxy`
-- `age_group_code`
-- `gender`
-- `bmi`
-- `systolic_bp`
-- `diastolic_bp`
-- `high_blood_pressure_flag`
-- `high_cholesterol_flag`
-- `glucose_risk_flag`
-- `smoking_flag`
-- `physical_activity_flag`
-- `heavy_alcohol_flag`
-- `general_health_score`
-- `mental_unhealthy_days`
-- `physical_unhealthy_days`
-- `difficulty_walking_flag`
-- `max_heart_rate`
-- `exercise_induced_angina`
-- `target`
+## SPARQL analysis examples
 
-## Analytical Layer
+Generated queries demonstrate how to:
 
-Two analytical pipelines are implemented on top of the same integrated table:
+- retrieve records connected to a population group
+- find indicators shared by multiple datasets
+- rank population groups by heart disease outcome rate
+- combine risk indicators for the same age/gender group
+- find graph concepts connected to multiple sources
 
-- `integrated_core`
-  Uses a compact and robust subset of shared variables.
-- `integrated_enriched`
-  Uses a broader set of reconciled variables.
+The P2 graph analysis pipeline runs selected SPARQL queries and writes:
 
-In both cases:
+```text
+Part5_Analysis_zone/reports/kg_analysis_report.json
+```
 
-- the model is not trained separately per original dataset
-- `source_dataset` is not used as a training feature
-- two candidate models are evaluated and the best one is selected through cross-validation
+## Zone documentation
 
-## Included Notebooks
-
-- `notebooks/01_data_pipeline_validation.ipynb`
-  Reviews data quality, zone outputs, and generated artifacts.
-- `notebooks/02_model_results_and_comparison.ipynb`
-  Compares the two integrated analytical pipelines.
-
-## Zone Documentation
-
-- [Part1_Landing_zone/README.md](Part1_Landing_zone/README.md)
-- [Part2_Formatting_zone/README.md](Part2_Formatting_zone/README.md)
-- [Part3_Trusted_zone/README.md](Part3_Trusted_zone/README.md)
-- [Part4_Exploitation_zone/README.md](Part4_Exploitation_zone/README.md)
-- [Part5_Analysis_zone/README.md](Part5_Analysis_zone/README.md)
-- [RUN_PIPELINE.md](RUN_PIPELINE.md)
+- `Part1_Landing_zone/README.md`
+- `Part2_Formatting_zone/README.md`
+- `Part3_Trusted_zone/README.md`
+- `Part4_Exploitation_zone/README.md`
+- `Part4_Exploitation_zone/KG_METAMODEL.md`
+- `Part5_Analysis_zone/README.md`

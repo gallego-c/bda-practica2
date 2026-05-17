@@ -1,6 +1,8 @@
 .vscode
 
 .env
+.venv/
+.hadoop/
 
 Part3_Trusted_zone/_staging/
 Part3_Trusted_zone/trusted_zone/
