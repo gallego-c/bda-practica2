@@ -1,38 +1,22 @@
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+from spark_runtime import require_spark_compatible_java
+
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 
-def java_available() -> bool:
-    if os.environ.get("JAVA_HOME") and (Path(os.environ["JAVA_HOME"]) / "bin" / "java").exists():
-        return True
-    return shutil.which("java") is not None
-
-
-def require_linux_runtime() -> None:
-    if sys.platform == "linux":
-        return
-
-    print("[ERROR] This project is supported only inside Linux/WSL.")
-    print("[ERROR] Open your WSL distro, cd to the repo, activate .venv, and rerun the pipeline there.")
-    raise SystemExit(1)
-
-
 def require_java_for_spark_steps() -> None:
-    if java_available():
-        return
-
-    print("[ERROR] Java was not found. Spark-based steps require a JDK.")
-    print("[ERROR] In WSL Ubuntu/Debian, install it with:")
-    print("[ERROR]   sudo apt update && sudo apt install -y default-jdk")
-    print("[ERROR] Then rerun:")
-    print("[ERROR]   source .venv/bin/activate && python run_all_pipeline.py --skip-landing --strict")
-    raise SystemExit(1)
+    try:
+        require_spark_compatible_java()
+    except RuntimeError as exc:
+        print(f"[ERROR] {exc}")
+        print("[ERROR] Linux/WSL: sudo apt update && sudo apt install -y openjdk-17-jdk")
+        print("[ERROR] Windows: install OpenJDK 17 or run python -m pip install -r requirements.txt")
+        raise SystemExit(1) from exc
 
 
 def run_step(name: str, script_path: Path, cwd: Path, strict: bool = True) -> bool:
@@ -61,8 +45,6 @@ def main() -> None:
     args = parser.parse_args()
 
     strict = args.strict
-
-    require_linux_runtime()
 
     steps = []
 

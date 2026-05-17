@@ -40,11 +40,21 @@ echo "Using $PYTHON_BIN ($PYTHON_VERSION)"
 
 if ! command -v java >/dev/null 2>&1; then
   echo "ERROR: Java was not found. Install a JDK before running the Spark pipeline."
-  echo "On Ubuntu/Debian WSL: sudo apt update && sudo apt install -y default-jdk"
+  echo "On Ubuntu/Debian WSL: sudo apt update && sudo apt install -y openjdk-17-jdk"
   exit 1
 fi
 
-echo "Using Java: $(java -version 2>&1 | head -n 1)"
+JAVA_VERSION_LINE="$(java -version 2>&1 | head -n 1)"
+JAVA_MAJOR="$(printf '%s\n' "$JAVA_VERSION_LINE" | sed -E 's/.*version "([0-9]+).*/\1/')"
+if [ "$JAVA_MAJOR" -gt 17 ] 2>/dev/null; then
+  echo "ERROR: Spark 3.5 requires Java 17 or older; found: $JAVA_VERSION_LINE"
+  echo "Install/select OpenJDK 17, for example:"
+  echo "sudo apt update && sudo apt install -y openjdk-17-jdk"
+  echo "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64"
+  exit 1
+fi
+
+echo "Using Java: $JAVA_VERSION_LINE"
 
 "$PYTHON_BIN" -m venv .venv
 

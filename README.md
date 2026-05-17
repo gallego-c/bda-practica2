@@ -88,23 +88,22 @@ Detailed schema and mapping documentation is in:
 - GraphDB as an optional external store for visualization and querying
 - DuckDB for formatted/trusted tables, compatibility views, and KG manifest discovery
 
-## Supported environment
+## Supported environments
 
-This project is intended to run only inside Linux/WSL. Do not run the pipeline from native Windows Python.
+The pipeline is verified in both WSL/Linux and native Windows. Spark 3.5 requires Java 17 for this project; Java 25 is not supported.
 
-- WSL2 with Ubuntu
 - Python 3.11 or 3.12
-- Java JDK for Spark, installed separately in the system
+- PySpark 3.5.0
+- Java 17 for Spark
 - Kaggle credentials for Landing Zone if new downloads are required
 
-### Install Java in WSL
+### Linux/WSL setup
 
 ```bash
 sudo apt update
-sudo apt install -y default-jdk
+sudo apt install -y python3-venv openjdk-17-jdk
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ```
-
-### Create the Python environment
 
 ```bash
 python -m venv .venv
@@ -112,6 +111,23 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
+
+### Windows setup
+
+Use a Windows Python environment and install the same requirements. On Windows, `requirements.txt` installs `jdk4py==17.0.9.2` so Spark can use a local Java 17 runtime when `JAVA_HOME` is not already set.
+
+```powershell
+.\scripts\setup_env_windows.ps1
+```
+
+The helper creates `.venv-win`, installs `requirements.txt`, and downloads Hadoop native binaries for Spark local file access:
+
+```text
+.hadoop/bin/winutils.exe
+.hadoop/bin/hadoop.dll
+```
+
+These files are local runtime dependencies and are ignored by Git.
 
 ## Run the full pipeline
 

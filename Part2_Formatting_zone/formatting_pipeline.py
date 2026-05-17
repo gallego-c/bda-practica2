@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -22,20 +21,21 @@ log = logging.getLogger(__name__)
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from spark_runtime import configure_spark_runtime
+
 LANDING_ZONE_ROOT = PROJECT_ROOT / "Part1_Landing_zone" / "landing_zone"
 DUCKDB_PATH = SCRIPT_DIR / "formatted_zone" / "formatted.duckdb"
 DUCKDB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def get_spark() -> SparkSession:
-    require_linux_java_runtime()
+    java_options = configure_spark_runtime(PROJECT_ROOT)
     python_exec = sys.executable
     os.environ["PYSPARK_PYTHON"] = python_exec
     os.environ["PYSPARK_DRIVER_PYTHON"] = python_exec
-    
-    # Set default username for Hadoop to work in WSL2
-    os.environ.setdefault("USER", "claudia")
-    os.environ.setdefault("HADOOP_USER_NAME", "claudia")
 
     builder = (
         SparkSession.builder
@@ -45,26 +45,14 @@ def get_spark() -> SparkSession:
         .config("spark.sql.legacy.timeParserPolicy", "LEGACY")
         .config("spark.pyspark.python", python_exec)
         .config("spark.pyspark.driver.python", python_exec)
-        .config("spark.driver.extraJavaOptions", "-Dcom.sun.jndi.ldap.connect.pool=false -Djavax.security.auth.useSubjectCredsOnly=false -Duser.name=claudia")
-        .config("spark.executor.extraJavaOptions", "-Dcom.sun.jndi.ldap.connect.pool=false -Djavax.security.auth.useSubjectCredsOnly=false -Duser.name=claudia")
     )
+    if java_options:
+        builder = (
+            builder
+            .config("spark.driver.extraJavaOptions", java_options)
+            .config("spark.executor.extraJavaOptions", java_options)
+        )
     return builder.getOrCreate()
-
-
-def require_linux_java_runtime() -> None:
-    if sys.platform != "linux":
-        raise RuntimeError("This project is supported only inside Linux/WSL.")
-
-    java_home = os.environ.get("JAVA_HOME")
-    if java_home and (Path(java_home) / "bin" / "java").exists():
-        return
-    if shutil.which("java"):
-        return
-
-    raise RuntimeError(
-        "Java was not found. Install a JDK in WSL with: "
-        "sudo apt update && sudo apt install -y default-jdk"
-    )
 
 
 def utc_now_iso() -> str:

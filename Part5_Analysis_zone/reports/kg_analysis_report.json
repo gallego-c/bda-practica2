@@ -1,7 +1,7 @@
 {
-  "run_at_utc": "2026-05-17T20:07:00+00:00",
-  "kg_manifest": "C:\\Users\\Claudia\\Documents\\Github\\bda-practica2\\Part4_Exploitation_zone\\exploitation_zone\\kg\\kg_manifest.json",
-  "analytics_graph": "C:\\Users\\Claudia\\Documents\\Github\\bda-practica2\\Part4_Exploitation_zone\\exploitation_zone\\kg\\health_risk_analytics_kg.ttl",
+  "run_at_utc": "2026-05-17T22:07:34+00:00",
+  "kg_manifest": "/mnt/c/Users/Claudia/Documents/Github/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json",
+  "analytics_graph": "/mnt/c/Users/Claudia/Documents/Github/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl",
   "triple_count": 5568,
   "queries": [
     {
