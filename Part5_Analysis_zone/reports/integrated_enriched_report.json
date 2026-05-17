@@ -1,7 +1,7 @@
 {
   "pipeline": "model_pipeline_integrated_enriched",
   "dataset": "integrated_risk_model_input",
-  "run_at_utc": "2026-05-17T16:40:31+00:00",
+  "run_at_utc": "2026-05-17T20:34:11+00:00",
   "rows_total": 322587,
   "rows_train": 258069,
   "rows_test": 64518,
@@ -15,8 +15,8 @@
   "split_strategy": "stratified_by_target",
   "candidate_models": {
     "logreg_balanced": {
-      "cv_pr_auc_mean": 0.5532323782273993,
-      "cv_pr_auc_std": 0.0021087940328258607
+      "cv_pr_auc_mean": 0.553232377882556,
+      "cv_pr_auc_std": 0.002108793560914444
     },
     "rf_balanced": {
       "cv_pr_auc_mean": 0.6327399881516237,

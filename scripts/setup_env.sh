@@ -3,6 +3,12 @@ set -euo pipefail
 
 echo "Creating Python virtual environment at .venv"
 
+if [ "$(uname -s)" != "Linux" ]; then
+  echo "ERROR: This project is supported only inside Linux/WSL."
+  echo "Open your WSL distro, cd to the repo, and rerun ./scripts/setup_env.sh there."
+  exit 1
+fi
+
 PYTHON_BIN="${PYTHON_BIN:-}"
 if [ -z "$PYTHON_BIN" ]; then
   for candidate in python3.12 python3.11 python3.10 python3; do
@@ -31,6 +37,14 @@ case "$PYTHON_VERSION" in
 esac
 
 echo "Using $PYTHON_BIN ($PYTHON_VERSION)"
+
+if ! command -v java >/dev/null 2>&1; then
+  echo "ERROR: Java was not found. Install a JDK before running the Spark pipeline."
+  echo "On Ubuntu/Debian WSL: sudo apt update && sudo apt install -y default-jdk"
+  exit 1
+fi
+
+echo "Using Java: $(java -version 2>&1 | head -n 1)"
 
 "$PYTHON_BIN" -m venv .venv
 

@@ -1,10 +1,38 @@
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+
+
+def java_available() -> bool:
+    if os.environ.get("JAVA_HOME") and (Path(os.environ["JAVA_HOME"]) / "bin" / "java").exists():
+        return True
+    return shutil.which("java") is not None
+
+
+def require_linux_runtime() -> None:
+    if sys.platform == "linux":
+        return
+
+    print("[ERROR] This project is supported only inside Linux/WSL.")
+    print("[ERROR] Open your WSL distro, cd to the repo, activate .venv, and rerun the pipeline there.")
+    raise SystemExit(1)
+
+
+def require_java_for_spark_steps() -> None:
+    if java_available():
+        return
+
+    print("[ERROR] Java was not found. Spark-based steps require a JDK.")
+    print("[ERROR] In WSL Ubuntu/Debian, install it with:")
+    print("[ERROR]   sudo apt update && sudo apt install -y default-jdk")
+    print("[ERROR] Then rerun:")
+    print("[ERROR]   source .venv/bin/activate && python run_all_pipeline.py --skip-landing --strict")
+    raise SystemExit(1)
 
 
 def run_step(name: str, script_path: Path, cwd: Path, strict: bool = True) -> bool:
@@ -34,6 +62,8 @@ def main() -> None:
 
     strict = args.strict
 
+    require_linux_runtime()
+
     steps = []
 
     landing_script = PROJECT_ROOT / "Part1_Landing_zone" / "data_collector.py"
@@ -44,6 +74,8 @@ def main() -> None:
         print("[WARN] Use --strict with configured kaggle credentials if you want to enforce Part1.")
     else:
         steps.append(("Part1_Landing", landing_script, PROJECT_ROOT / "Part1_Landing_zone"))
+
+    require_java_for_spark_steps()
 
     steps.extend([
         ("Part2_Formatting", PROJECT_ROOT / "Part2_Formatting_zone" / "formatting_pipeline.py", PROJECT_ROOT),

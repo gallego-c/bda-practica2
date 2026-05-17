@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,11 +28,14 @@ DUCKDB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def get_spark() -> SparkSession:
-    configure_java_home()
-    java_options = configure_hadoop_home()
+    require_linux_java_runtime()
     python_exec = sys.executable
     os.environ["PYSPARK_PYTHON"] = python_exec
     os.environ["PYSPARK_DRIVER_PYTHON"] = python_exec
+    
+    # Set default username for Hadoop to work in WSL2
+    os.environ.setdefault("USER", "claudia")
+    os.environ.setdefault("HADOOP_USER_NAME", "claudia")
 
     builder = (
         SparkSession.builder
@@ -41,40 +45,26 @@ def get_spark() -> SparkSession:
         .config("spark.sql.legacy.timeParserPolicy", "LEGACY")
         .config("spark.pyspark.python", python_exec)
         .config("spark.pyspark.driver.python", python_exec)
+        .config("spark.driver.extraJavaOptions", "-Dcom.sun.jndi.ldap.connect.pool=false -Djavax.security.auth.useSubjectCredsOnly=false -Duser.name=claudia")
+        .config("spark.executor.extraJavaOptions", "-Dcom.sun.jndi.ldap.connect.pool=false -Djavax.security.auth.useSubjectCredsOnly=false -Duser.name=claudia")
     )
-    if java_options:
-        builder = (
-            builder
-            .config("spark.driver.extraJavaOptions", java_options)
-            .config("spark.executor.extraJavaOptions", java_options)
-        )
     return builder.getOrCreate()
 
 
-def configure_java_home() -> None:
-    if os.environ.get("JAVA_HOME"):
+def require_linux_java_runtime() -> None:
+    if sys.platform != "linux":
+        raise RuntimeError("This project is supported only inside Linux/WSL.")
+
+    java_home = os.environ.get("JAVA_HOME")
+    if java_home and (Path(java_home) / "bin" / "java").exists():
         return
-    try:
-        import jdk4py
-    except ImportError:
+    if shutil.which("java"):
         return
 
-    java_home = Path(jdk4py.JAVA_HOME)
-    os.environ["JAVA_HOME"] = str(java_home)
-    os.environ["PATH"] = str(java_home / "bin") + os.pathsep + os.environ.get("PATH", "")
-
-
-def configure_hadoop_home() -> str:
-    hadoop_home = PROJECT_ROOT / ".hadoop"
-    hadoop_bin = hadoop_home / "bin"
-    if not (hadoop_bin / "winutils.exe").exists():
-        return ""
-
-    hadoop_home_java = hadoop_home.as_posix()
-    hadoop_bin_java = hadoop_bin.as_posix()
-    os.environ["HADOOP_HOME"] = hadoop_home_java
-    os.environ["PATH"] = str(hadoop_bin) + os.pathsep + os.environ.get("PATH", "")
-    return f"-Djava.library.path={hadoop_bin_java} -Dhadoop.home.dir={hadoop_home_java}"
+    raise RuntimeError(
+        "Java was not found. Install a JDK in WSL with: "
+        "sudo apt update && sudo apt install -y default-jdk"
+    )
 
 
 def utc_now_iso() -> str:

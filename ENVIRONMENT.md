@@ -1,4 +1,6 @@
-Running this project in WSL (Ubuntu / Debian)
+Running this project in Linux/WSL (Ubuntu / Debian)
+
+Native Windows Python is not supported for this project. Run all setup and pipeline commands inside your Linux/WSL shell.
 
 1) Start WSL (Windows Terminal → your distro) or run:
 

@@ -88,35 +88,28 @@ Detailed schema and mapping documentation is in:
 - GraphDB as an optional external store for visualization and querying
 - DuckDB for formatted/trusted tables, compatibility views, and KG manifest discovery
 
-## Recommended environment
+## Supported environment
 
+This project is intended to run only inside Linux/WSL. Do not run the pipeline from native Windows Python.
+
+- WSL2 with Ubuntu
 - Python 3.11 or 3.12
-- Java JDK for Spark
+- Java JDK for Spark, installed separately in the system
 - Kaggle credentials for Landing Zone if new downloads are required
 
-### Repo-local environment on Windows
-
-This repository can be run with a local `.venv` so dependency resolution does not depend on global Python or Java installs:
-
-```powershell
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements-local.txt
-```
-
-`requirements-local.txt` installs the P1/P2 Python stack and a local Java 17 runtime through `jdk4py` on Windows. The Spark scripts auto-detect that local JDK if `JAVA_HOME` is not already set.
-
-For Windows PySpark local-file support, the repo also uses:
-
-```text
-.hadoop/bin/winutils.exe
-.hadoop/bin/hadoop.dll
-```
-
-The Spark scripts set `HADOOP_HOME` to `.hadoop` automatically when those files are present.
-
-### Generic environment
+### Install Java in WSL
 
 ```bash
+sudo apt update
+sudo apt install -y default-jdk
+```
+
+### Create the Python environment
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
@@ -125,13 +118,13 @@ python -m pip install -r requirements.txt
 If landing snapshots already exist:
 
 ```bash
-.venv/Scripts/python.exe run_all_pipeline.py --skip-landing --strict
+python run_all_pipeline.py --skip-landing --strict
 ```
 
 Including Landing Zone:
 
 ```bash
-.venv/Scripts/python.exe run_all_pipeline.py --strict
+python run_all_pipeline.py --strict
 ```
 
 ## Main outputs
