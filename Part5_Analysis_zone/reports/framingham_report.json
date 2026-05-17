@@ -1,0 +1,58 @@
+{
+  "pipeline": "model_pipeline_framingham",
+  "dataset": "framingham_heart_study",
+  "run_at_utc": "2026-04-02T16:19:40+00:00",
+  "rows_total": 4239,
+  "rows_train": 3391,
+  "rows_test": 848,
+  "target_positive_rate": 0.15168671856569946,
+  "candidate_models": {
+    "logreg_balanced": {
+      "cv_pr_auc_mean": 0.34292414962024953,
+      "cv_pr_auc_std": 0.015500848633572826
+    },
+    "rf_balanced": {
+      "cv_pr_auc_mean": 0.3256323839328489,
+      "cv_pr_auc_std": 0.029023874479758054
+    }
+  },
+  "selected_model": "logreg_balanced",
+  "decision_threshold": 0.5536319087945727,
+  "test_metrics": {
+    "accuracy": 0.7252358490566038,
+    "precision": 0.292,
+    "recall": 0.5658914728682171,
+    "f1": 0.38522427440633245,
+    "roc_auc": 0.6949143405461935,
+    "pr_auc": 0.2972118817442953,
+    "confusion_matrix": [
+      [
+        542,
+        177
+      ],
+      [
+        56,
+        73
+      ]
+    ]
+  },
+  "features": [
+    "age_years",
+    "gender",
+    "systolic_bp",
+    "diastolic_bp",
+    "bmi",
+    "cholesterol_proxy",
+    "glucose_proxy",
+    "smoking_proxy",
+    "pulse_pressure",
+    "hypertension_stage1_flag",
+    "education_level",
+    "on_bp_medication",
+    "has_diabetes",
+    "prevalent_hypertension",
+    "cigarettes_per_day",
+    "total_cholesterol",
+    "heart_rate"
+  ]
+}

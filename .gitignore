@@ -1,0 +1,17 @@
+.vscode
+
+.env
+
+Part3_Trusted_zone/_staging/
+Part3_Trusted_zone/trusted_zone/
+Part4_Exploitation_zone/_staging/
+Part4_Exploitation_zone/exploitation_zone/
+Part5_Analysis_zone/models/
+Part5_Analysis_zone/figures/
+
+pycache__/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log   

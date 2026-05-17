@@ -1,0 +1,122 @@
+# ==============================================================================
+# GITHUB ACTIONS WORKFLOW — Data Collector (Landing Zone)
+# ==============================================================================
+#
+# DECISIONES DE DISEÑO:
+# ---------------------
+# -  schedule: cron "0 2 * * *"  → mismo horario que el DAG de Airflow (02:00 UTC).
+#    Se elige un único mecanismo de orquestación en producción; aquí se muestran
+#    ambos como alternativas académicas.
+#
+# -  workflow_dispatch  → permite lanzar la ingesta manualmente desde la UI de
+#    GitHub (útil para recargas puntuales o pruebas).
+#
+# -  Las credenciales de Kaggle se guardan como GitHub Secrets (cifrados),
+#    NUNCA en texto plano en el workflow ni en el código.
+#    Configurar en: Settings → Secrets and variables → Actions
+#        KAGGLE_USERNAME  →  tu usuario
+#        KAGGLE_KEY       →  tu API key
+#
+# -  El Data Lake se simula con el artifact upload de GitHub Actions.
+#    En producción se subiría a S3/GCS/HDFS en vez de guardar como artifact.
+#
+# -  Java 11 es requisito de PySpark; se instala explícitamente.
+# ==============================================================================
+
+name: Landing Zone — Data Collector
+
+on:
+  schedule:
+    # Diario a las 02:00 UTC  (mismo intervalo que el DAG de Airflow)
+    - cron: "0 2 * * *"
+
+  # Permite lanzar la ingesta manualmente desde la UI de GitHub
+  workflow_dispatch:
+    inputs:
+      dataset_filter:
+        description: "Nombre del dataset a ingestar (vacío = todos)"
+        required: false
+        default: ""
+
+jobs:
+  collect-data:
+    name: Ingest Kaggle Datasets → Landing Zone
+    runs-on: ubuntu-latest
+
+    env:
+      # Credenciales inyectadas desde GitHub Secrets (nunca en texto plano)
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      # PySpark necesita JAVA_HOME configurado
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+
+    steps:
+      # 1. Checkout del código del repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configurar Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # 3. Instalar Java (requisito de PySpark)
+      - name: Install Java 11
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y openjdk-11-jdk
+          java -version
+
+      # 4. Instalar dependencias Python
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install kaggle pyspark==3.5.0 pyarrow pandas
+
+      # 5. Configurar credenciales de Kaggle
+      #    La API de Kaggle busca ~/.kaggle/kaggle.json automáticamente
+      - name: Configure Kaggle credentials
+        run: |
+          mkdir -p ~/.kaggle
+          echo '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' \
+            > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      # 6. Ejecutar el Data Collector
+      - name: Run Data Collector
+        run: |
+          python landing_zone/data_collector.py
+
+      # 7. Mostrar estructura del Data Lake generado (para auditoría en los logs)
+      - name: Show Landing Zone structure
+        if: always()
+        run: |
+          echo "=== Landing Zone structure ==="
+          find landing_zone -type f | sort
+          echo "=== Disk usage ==="
+          du -sh landing_zone/
+
+      # 8. Subir el Data Lake como artifact de GitHub
+      #    En producción este paso se reemplaza por un upload a S3/GCS:
+      #      aws s3 sync landing_zone/ s3://my-data-lake/landing/
+      #      o
+      #      gsutil -m rsync -r landing_zone/ gs://my-bucket/landing/
+      - name: Upload Landing Zone as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: landing-zone-${{ github.run_id }}
+          path: landing_zone/
+          retention-days: 30   # conservar 30 días de histórico
+
+      # 9. Notificación de fallo (opcional, requiere configurar SLACK_WEBHOOK)
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "⚠️ Data Collector failed. Check the logs at:"
+          echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          # En producción descomentar para enviar a Slack:
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"⚠️ Landing Zone collector FAILED: ${{ github.run_id }}"}' \
+          #   ${{ secrets.SLACK_WEBHOOK }}

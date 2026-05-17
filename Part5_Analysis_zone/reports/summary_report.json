@@ -1,0 +1,138 @@
+{
+  "run_at_utc": "2026-04-12T16:45:21+00:00",
+  "pipelines": {
+    "integrated_core": {
+      "pipeline": "model_pipeline_integrated_core",
+      "dataset": "integrated_risk_model_input",
+      "run_at_utc": "2026-04-12T16:44:37+00:00",
+      "rows_total": 322587,
+      "rows_train": 258069,
+      "rows_test": 64518,
+      "target_positive_rate": 0.1797034598418411,
+      "source_distribution": {
+        "heart_disease_health_indicators": 253680,
+        "cardiovascular_disease": 68610,
+        "heart_disease_cleveland": 297
+      },
+      "integration_mode": "all_sources_together_without_source_feature",
+      "split_strategy": "stratified_by_target",
+      "candidate_models": {
+        "logreg_balanced": {
+          "cv_roc_auc_mean": 0.7472604793034984,
+          "cv_roc_auc_std": 0.001134300461310922
+        },
+        "rf_balanced": {
+          "cv_roc_auc_mean": 0.8200840208013669,
+          "cv_roc_auc_std": 0.0014758745792477206
+        }
+      },
+      "selected_model": "rf_balanced",
+      "decision_threshold": 0.6388985689565521,
+      "features": [
+        "age_years_proxy",
+        "bmi",
+        "gender",
+        "high_blood_pressure_flag",
+        "high_cholesterol_flag",
+        "glucose_risk_flag",
+        "smoking_flag",
+        "physical_activity_flag",
+        "heavy_alcohol_flag"
+      ],
+      "test_metrics": {
+        "accuracy": 0.7875476611178276,
+        "precision": 0.4347073728446944,
+        "recall": 0.6066931171295498,
+        "f1": 0.5064986498649865,
+        "roc_auc": 0.8170919068926461,
+        "pr_auc": 0.49279024127292653,
+        "confusion_matrix": [
+          [
+            43777,
+            9147
+          ],
+          [
+            4560,
+            7034
+          ]
+        ]
+      }
+    },
+    "integrated_enriched": {
+      "pipeline": "model_pipeline_integrated_enriched",
+      "dataset": "integrated_risk_model_input",
+      "run_at_utc": "2026-04-12T16:45:21+00:00",
+      "rows_total": 322587,
+      "rows_train": 258069,
+      "rows_test": 64518,
+      "target_positive_rate": 0.1797034598418411,
+      "source_distribution": {
+        "heart_disease_health_indicators": 253680,
+        "cardiovascular_disease": 68610,
+        "heart_disease_cleveland": 297
+      },
+      "integration_mode": "all_sources_together_without_source_feature",
+      "split_strategy": "stratified_by_target",
+      "candidate_models": {
+        "logreg_balanced": {
+          "cv_pr_auc_mean": 0.5533005523686801,
+          "cv_pr_auc_std": 0.0020677465504767723
+        },
+        "rf_balanced": {
+          "cv_pr_auc_mean": 0.6328398396950335,
+          "cv_pr_auc_std": 0.001639376791188963
+        }
+      },
+      "selected_model": "rf_balanced",
+      "decision_threshold": 0.605460637467754,
+      "features": [
+        "age_years_proxy",
+        "bmi",
+        "systolic_bp",
+        "diastolic_bp",
+        "general_health_score",
+        "mental_unhealthy_days",
+        "physical_unhealthy_days",
+        "max_heart_rate",
+        "gender",
+        "high_blood_pressure_flag",
+        "high_cholesterol_flag",
+        "glucose_risk_flag",
+        "smoking_flag",
+        "physical_activity_flag",
+        "heavy_alcohol_flag",
+        "difficulty_walking_flag",
+        "exercise_induced_angina"
+      ],
+      "test_metrics": {
+        "accuracy": 0.8368827304008184,
+        "precision": 0.5396178909952607,
+        "recall": 0.6285147490081077,
+        "f1": 0.5806837198183122,
+        "roc_auc": 0.8694007900797323,
+        "pr_auc": 0.6252283073076838,
+        "confusion_matrix": [
+          [
+            46707,
+            6217
+          ],
+          [
+            4307,
+            7287
+          ]
+        ]
+      }
+    }
+  },
+  "artifacts": {
+    "models": [
+      "integrated_core_model.pkl",
+      "integrated_enriched_model.pkl"
+    ],
+    "reports": [
+      "integrated_core_report.json",
+      "integrated_enriched_report.json",
+      "summary_report.json"
+    ]
+  }
+}

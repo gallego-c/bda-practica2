@@ -1,0 +1,14 @@
+# ============================================================================== 
+# requirements.txt — Practica 1 (Landing + Formatting)
+# ============================================================================== 
+# Descarga de datasets
+kaggle>=1.6.0
+
+# Procesamiento y conversión
+pyspark==3.5.0
+pyarrow>=14.0.0
+pandas>=2.0.0
+
+# Almacenamiento Formatted Zone
+duckdb>=1.0.0
+apache-airflow==2.10.5
