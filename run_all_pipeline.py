@@ -64,6 +64,7 @@ def main() -> None:
         ("Part3_Trusted", PROJECT_ROOT / "Part3_Trusted_zone" / "trusted_pipeline.py", PROJECT_ROOT),
         ("Part4_Exploitation", PROJECT_ROOT / "Part4_Exploitation_zone" / "exploitation_pipeline.py", PROJECT_ROOT),
         ("Part5_KG_Analysis", PROJECT_ROOT / "Part5_Analysis_zone" / "kg_analysis_pipeline.py", PROJECT_ROOT),
+        ("Part5_KG_Embedding_ML", PROJECT_ROOT / "Part5_Analysis_zone" / "kg_embedding_pipeline.py", PROJECT_ROOT),
         ("Part5_Analysis", PROJECT_ROOT / "Part5_Analysis_zone" / "analysis_pipeline.py", PROJECT_ROOT),
     ])
 

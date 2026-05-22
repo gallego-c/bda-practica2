@@ -71,6 +71,24 @@ The cleaning that previously lived too early in the Formatting Zone is now perfo
 
 The output tables are reliable enough to be transformed into RDF resources in `Part4_Exploitation_zone`.
 
+## Denial constraint formalization
+
+The implemented quality rules can be read as denial constraints of the form
+`not exists r in Dataset: condition(r)`. The main constraints are:
+
+- Cardiovascular age: `not exists r: r.age_years < 18 or r.age_years > 100`
+- Cardiovascular blood pressure order: `not exists r: r.systolic_bp < r.diastolic_bp`
+- Cardiovascular patient key: `not exists r1, r2: r1.patient_id = r2.patient_id and r1 != r2`
+- CDC age group: `not exists r: r.age_group_code < 1 or r.age_group_code > 13`
+- CDC binary indicators: `not exists r: high_blood_pressure_flag, high_cholesterol_flag, smoking_flag, physical_activity_flag, heavy_alcohol_flag, difficulty_walking_flag not in {true,false}`
+- Cleveland clinical ranges: `not exists r: resting_bp not in [70,250] or serum_cholesterol not in [50,700] or max_heart_rate not in [40,250]`
+- Cleveland categorical domains: `not exists r: chest_pain_type not in {0,1,2,3} or resting_ecg not in {0,1,2} or st_slope not in {0,1,2}`
+- Cleveland record key: `not exists r1, r2: r1.record_key = r2.record_key and r1 != r2`
+
+Rows violating hard constraints are not silently repaired; they are written to
+`metadata.quarantine` with the violated rule names, while aggregate rule metrics
+are stored in `metadata.quality_report`.
+
 ## Dataset-specific logic
 
 ### `cardiovascular_disease`

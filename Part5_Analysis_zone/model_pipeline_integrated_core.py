@@ -7,6 +7,7 @@ from analysis_utils import (
     best_f1_threshold,
     classification_metrics,
     fit_candidate_models,
+    model_feature_importance,
     prepare_model_frame,
     utc_now_iso,
 )
@@ -67,6 +68,7 @@ def run_integrated_core_pipeline(df, reports_dir: Path, models_dir: Path, save_j
         "selected_model": best_name,
         "decision_threshold": float(threshold),
         "features": numeric_features + categorical_features,
+        "top_feature_importance": model_feature_importance(best_model),
         "test_metrics": classification_metrics(y_test, test_pred, test_prob),
     }
 

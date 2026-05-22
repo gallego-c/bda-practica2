@@ -162,6 +162,8 @@ python run_all_pipeline.py --strict
   `Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json`
 - KG analysis report:
   `Part5_Analysis_zone/reports/kg_analysis_report.json`
+- KG embedding ML report:
+  `Part5_Analysis_zone/reports/kg_embedding_report.json`
 
 ## Exploitation Zone assets
 
@@ -187,6 +189,17 @@ The P2 graph analysis pipeline runs selected SPARQL queries and writes:
 
 ```text
 Part5_Analysis_zone/reports/kg_analysis_report.json
+```
+
+The second graph-native analysis pipeline generates node embeddings from the RDF
+analytics graph, holds out outcome aggregate nodes to reduce label leakage, and
+trains a record-level classifier over dataset, population-group, and indicator
+embeddings:
+
+```text
+Part5_Analysis_zone/reports/kg_embedding_report.json
+Part5_Analysis_zone/reports/kg_node_embeddings.csv
+Part5_Analysis_zone/models/kg_embedding_model.pkl
 ```
 
 ## Zone documentation

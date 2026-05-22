@@ -1,7 +1,7 @@
 {
   "pipeline": "model_pipeline_integrated_enriched",
   "dataset": "integrated_risk_model_input",
-  "run_at_utc": "2026-05-17T22:09:25+00:00",
+  "run_at_utc": "2026-05-22T11:40:56+00:00",
   "rows_total": 322587,
   "rows_train": 258069,
   "rows_test": 64518,
@@ -24,7 +24,7 @@
     }
   },
   "selected_model": "rf_balanced",
-  "decision_threshold": 0.6124432096850752,
+  "decision_threshold": 0.612443209685075,
   "features": [
     "age_years_proxy",
     "bmi",
@@ -43,6 +43,108 @@
     "heavy_alcohol_flag",
     "difficulty_walking_flag",
     "exercise_induced_angina"
+  ],
+  "top_feature_importance": [
+    {
+      "feature": "num__systolic_bp",
+      "importance": 0.21766087953046084,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__high_blood_pressure_flag_True",
+      "importance": 0.16097888075646233,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__high_blood_pressure_flag_False",
+      "importance": 0.13195532898520707,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "num__diastolic_bp",
+      "importance": 0.11711696958575221,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "num__age_years_proxy",
+      "importance": 0.10694687714332433,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "num__general_health_score",
+      "importance": 0.08092988983652849,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "num__mental_unhealthy_days",
+      "importance": 0.019729887049052954,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__glucose_risk_flag_False",
+      "importance": 0.01879748355590612,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "num__physical_unhealthy_days",
+      "importance": 0.01788244788537892,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "num__bmi",
+      "importance": 0.01699029990527033,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__difficulty_walking_flag_True",
+      "importance": 0.015039576779827297,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__high_cholesterol_flag_False",
+      "importance": 0.013680495520239632,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__glucose_risk_flag_True",
+      "importance": 0.013441331434349616,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__difficulty_walking_flag_False",
+      "importance": 0.012272473052315757,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__high_cholesterol_flag_True",
+      "importance": 0.012106239648773276,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__gender_female",
+      "importance": 0.011476443634990093,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__gender_male",
+      "importance": 0.01100311067981036,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__smoking_flag_True",
+      "importance": 0.007675691159136266,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__smoking_flag_False",
+      "importance": 0.007101251947283304,
+      "importance_type": "gini_importance"
+    },
+    {
+      "feature": "cat__physical_activity_flag_True",
+      "importance": 0.0020936745684142872,
+      "importance_type": "gini_importance"
+    }
   ],
   "test_metrics": {
     "accuracy": 0.8400291391549645,

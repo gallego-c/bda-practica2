@@ -1,4 +1,5 @@
 import logging
+import json
 import sys
 
 from analysis_config import EXPLOITATION_DUCKDB_PATH, FIGURES_DIR, MODELS_DIR, REPORTS_DIR
@@ -61,20 +62,35 @@ def main() -> None:
         save_model,
     )
 
+    kg_embedding_report_path = REPORTS_DIR / "kg_embedding_report.json"
+    kg_embedding_summary = None
+    if kg_embedding_report_path.exists():
+        kg_embedding_report = json.loads(kg_embedding_report_path.read_text(encoding="utf-8"))
+        kg_embedding_summary = {
+            "pipeline": kg_embedding_report.get("pipeline"),
+            "selected_model": kg_embedding_report.get("selected_model"),
+            "rows_train": kg_embedding_report.get("rows_train"),
+            "rows_test": kg_embedding_report.get("rows_test"),
+            "test_metrics": kg_embedding_report.get("test_metrics"),
+        }
+
     summary = {
         "run_at_utc": utc_now_iso(),
         "pipelines": {
             "integrated_core": integrated_core_report,
             "integrated_enriched": integrated_enriched_report,
+            "kg_embedding": kg_embedding_summary,
         },
         "artifacts": {
             "models": [
                 "integrated_core_model.pkl",
                 "integrated_enriched_model.pkl",
+                "kg_embedding_model.pkl",
             ],
             "reports": [
                 "integrated_core_report.json",
                 "integrated_enriched_report.json",
+                "kg_embedding_report.json",
                 "summary_report.json",
             ],
         },

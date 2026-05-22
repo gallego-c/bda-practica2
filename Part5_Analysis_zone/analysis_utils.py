@@ -171,6 +171,35 @@ def fit_candidate_models(
     return best_name, fitted_models[best_name], model_scores
 
 
+def model_feature_importance(model: Pipeline, top_n: int = 20) -> list[dict]:
+    preprocessor = model.named_steps["prep"]
+    classifier = model.named_steps["clf"]
+    feature_names = preprocessor.get_feature_names_out()
+
+    if hasattr(classifier, "feature_importances_"):
+        values = classifier.feature_importances_
+        importance_type = "gini_importance"
+    elif hasattr(classifier, "coef_"):
+        values = np.abs(classifier.coef_[0])
+        importance_type = "absolute_coefficient"
+    else:
+        return []
+
+    ranked = sorted(
+        zip(feature_names, values),
+        key=lambda item: float(item[1]),
+        reverse=True,
+    )[:top_n]
+    return [
+        {
+            "feature": str(feature_name),
+            "importance": float(importance),
+            "importance_type": importance_type,
+        }
+        for feature_name, importance in ranked
+    ]
+
+
 def prepare_model_frame(
     df: pd.DataFrame,
     numeric_features: list[str],

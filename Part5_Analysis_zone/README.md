@@ -1,6 +1,6 @@
 # Part 5: Analysis Zone
 
-The Analysis Zone implements two complementary predictive pipelines on integrated datasets, plus a graph-based SPARQL analysis pipeline. All pipelines consume data from the Exploitation Zone.
+The Analysis Zone implements two complementary predictive pipelines on integrated datasets, a graph-based SPARQL analysis pipeline, and a KG embedding ML pipeline. All pipelines consume data from the Exploitation Zone.
 
 **Purpose:** Demonstrate actionable ML models and semantic graph analysis on integrated cross-dataset information.
 
@@ -50,7 +50,7 @@ All pipelines use a single integrated data source rather than training separate 
 
 ### Candidate Models (Both Pipelines)
 - Logistic Regression (balanced)
-- Gradient Boosting (tuned)
+- Random Forest (balanced)
 
 ## 🧠 Graph Analysis Pipeline
 
@@ -59,6 +59,15 @@ All pipelines use a single integrated data source rather than training separate 
 - Executes SPARQL queries without flattening
 - Provides graph-native analysis and insights
 - Demonstrates semantic integration benefits
+
+## KG Embedding ML Pipeline
+
+`kg_embedding_pipeline.py` satisfies the P2 requirement for ML over KG embeddings:
+- Builds a typed RDF adjacency matrix from the analytics KG
+- Holds out heart-disease outcome aggregate nodes while generating embeddings to reduce label leakage
+- Creates TruncatedSVD node embeddings for datasets, population groups, indicators, and aggregate graph nodes
+- Builds record-level samples from KG node embeddings and observed graph indicator context
+- Trains a classifier to predict heart-disease outcome using graph-derived features
 
 ## 🚀 Usage
 
@@ -78,9 +87,18 @@ python Part5_Analysis_zone/kg_analysis_pipeline.py
 
 Executes SPARQL queries on the Knowledge Graph and generates analytical insights.
 
+### Run KG Embedding ML
+
+```bash
+python Part5_Analysis_zone/kg_embedding_pipeline.py
+```
+
+Generates KG node embeddings and trains the graph-embedding classifier.
+
 ### Processing Time
 - ML pipelines: 2-5 minutes (depending on cross-validation folds)
 - Graph analysis: 1-2 minutes
+- KG embedding ML: under 1 minute on the compact analytics graph
 
 ## 📥 Inputs
 
@@ -107,6 +125,15 @@ Part5_Analysis_zone/reports/
 └── kg_analysis_report.json           # Graph analysis findings
 ```
 
+Additional KG embedding outputs:
+- `Part5_Analysis_zone/models/kg_embedding_model.pkl`
+- `Part5_Analysis_zone/reports/kg_embedding_report.json`
+- `Part5_Analysis_zone/reports/kg_node_embeddings.csv`
+- `Part5_Analysis_zone/reports/kg_embedding_training_data.csv`
+
+The integrated model reports also include `top_feature_importance`, which lists
+the strongest transformed features used by the selected classifier.
+
 ### Report Contents
 Each model report includes:
 - Accuracy, Precision, Recall, F1-Score
@@ -121,6 +148,7 @@ Each model report includes:
 Key scripts:
 - `analysis_pipeline.py` - ML orchestrator
 - `kg_analysis_pipeline.py` - SPARQL-based graph analysis
+- `kg_embedding_pipeline.py` - KG embedding generation and ML classifier
 - `analysis_utils.py` - Data loading, preprocessing, validation
 - `model_pipeline_integrated_core.py` - Core model training
 - `model_pipeline_integrated_enriched.py` - Enriched model training
