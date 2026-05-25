@@ -41,7 +41,7 @@ Each dataset directory contains `ingested_<timestamp>/` folders with the corresp
 
 ```bash
 conda activate bda_practica
-cd /path/to/bda-practica1
+cd /path/to/bda-practica2
 python Part1_Landing_zone/data_collector.py
 ```
 
@@ -100,8 +100,8 @@ pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}
 ```bash
 mkdir -p "$AIRFLOW_HOME/dags"
 
-ln -sf /path/to/bda-practica1/Part1_Landing_zone/airflow_dag.py "$AIRFLOW_HOME/dags/airflow_dag.py"
-ln -sf /path/to/bda-practica1/Part1_Landing_zone/data_collector.py "$AIRFLOW_HOME/dags/data_collector.py"
+ln -sf /path/to/bda-practica2/Part1_Landing_zone/airflow_dag.py "$AIRFLOW_HOME/dags/airflow_dag.py"
+ln -sf /path/to/bda-practica2/Part1_Landing_zone/data_collector.py "$AIRFLOW_HOME/dags/data_collector.py"
 ```
 
 ## Start Airflow

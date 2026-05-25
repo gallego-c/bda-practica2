@@ -1,5 +1,5 @@
 # ============================================================================== 
-# requirements.txt — Practica 1 (Landing + Formatting)
+# requirements.txt — Practica 2 (Landing zone collector)
 # ============================================================================== 
 # Descarga de datasets
 kaggle>=1.6.0

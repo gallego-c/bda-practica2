@@ -1,10 +1,10 @@
 {
-  "run_at_utc": "2026-05-22T11:40:56+00:00",
+  "run_at_utc": "2026-05-25T11:19:22+00:00",
   "pipelines": {
     "integrated_core": {
       "pipeline": "model_pipeline_integrated_core",
       "dataset": "integrated_risk_model_input",
-      "run_at_utc": "2026-05-22T11:40:02+00:00",
+      "run_at_utc": "2026-05-25T11:18:37+00:00",
       "rows_total": 322587,
       "rows_train": 258069,
       "rows_test": 64518,
@@ -27,7 +27,7 @@
         }
       },
       "selected_model": "rf_balanced",
-      "decision_threshold": 0.6463803900946007,
+      "decision_threshold": 0.6463803900946006,
       "features": [
         "age_years_proxy",
         "bmi",
@@ -122,20 +122,20 @@
         }
       ],
       "test_metrics": {
-        "accuracy": 0.7934374903127809,
-        "precision": 0.44352473440656975,
-        "recall": 0.5869415214766258,
-        "f1": 0.5052529977354568,
+        "accuracy": 0.7931584984035464,
+        "precision": 0.4430420922516427,
+        "recall": 0.5873727790236329,
+        "f1": 0.505099202670128,
         "roc_auc": 0.8174601747948018,
         "pr_auc": 0.49396610716836764,
         "confusion_matrix": [
           [
-            44386,
-            8538
+            44363,
+            8561
           ],
           [
-            4789,
-            6805
+            4784,
+            6810
           ]
         ]
       }
@@ -143,7 +143,7 @@
     "integrated_enriched": {
       "pipeline": "model_pipeline_integrated_enriched",
       "dataset": "integrated_risk_model_input",
-      "run_at_utc": "2026-05-22T11:40:56+00:00",
+      "run_at_utc": "2026-05-25T11:19:22+00:00",
       "rows_total": 322587,
       "rows_train": 258069,
       "rows_test": 64518,
@@ -313,20 +313,20 @@
       "rows_train": 48000,
       "rows_test": 12000,
       "test_metrics": {
-        "accuracy": 0.8201666666666667,
-        "precision": 0.4996712689020381,
-        "recall": 0.7050092764378478,
-        "f1": 0.5848403232012312,
-        "roc_auc": 0.8606841636769221,
-        "pr_auc": 0.5724474455010239,
+        "accuracy": 0.8210833333333334,
+        "precision": 0.5014995001666112,
+        "recall": 0.698051948051948,
+        "f1": 0.5836726779135156,
+        "roc_auc": 0.8605610463867125,
+        "pr_auc": 0.5732896480026268,
         "confusion_matrix": [
           [
-            8322,
-            1522
+            8348,
+            1496
           ],
           [
-            636,
-            1520
+            651,
+            1505
           ]
         ]
       }
@@ -342,6 +342,7 @@
       "integrated_core_report.json",
       "integrated_enriched_report.json",
       "kg_embedding_report.json",
+      "kg_analysis_report.json",
       "summary_report.json"
     ]
   }

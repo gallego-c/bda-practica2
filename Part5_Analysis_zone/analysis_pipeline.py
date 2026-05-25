@@ -91,6 +91,7 @@ def main() -> None:
                 "integrated_core_report.json",
                 "integrated_enriched_report.json",
                 "kg_embedding_report.json",
+                "kg_analysis_report.json",
                 "summary_report.json",
             ],
         },

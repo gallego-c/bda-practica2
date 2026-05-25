@@ -7,7 +7,6 @@ from pyspark.sql import types as T
 
 from trusted_config import (
     FORMATTED_DUCKDB_PATH,
-    STAGING_ROOT,
     TRUSTED_DUCKDB_PATH,
     TRUSTED_PARQUET_ROOT,
 )
@@ -22,29 +21,28 @@ TRUSTED_TABLES = [
 
 def ensure_dirs() -> None:
     TRUSTED_PARQUET_ROOT.mkdir(parents=True, exist_ok=True)
-    STAGING_ROOT.mkdir(parents=True, exist_ok=True)
 
 
-def export_formatted_tables_to_parquet(run_id: str, log) -> dict[str, Path]:
+def read_formatted_tables(spark: SparkSession, log) -> dict[str, DataFrame]:
+    """Read formatted tables directly from the Formatted DuckDB into Spark DataFrames.
+
+    Addresses the P1 feedback by avoiding the "store as parquet then read" round-trip:
+    the formatted DuckDB is fetched in-process through DuckDB's native pandas
+    integration and converted to a Spark DataFrame in memory.
+    """
     if not FORMATTED_DUCKDB_PATH.exists():
         raise FileNotFoundError(f"Formatted DB not found at {FORMATTED_DUCKDB_PATH}")
-
-    export_dir = STAGING_ROOT / run_id
-    export_dir.mkdir(parents=True, exist_ok=True)
 
     con = duckdb.connect(str(FORMATTED_DUCKDB_PATH))
     try:
         catalog_name = FORMATTED_DUCKDB_PATH.stem
-        exports: dict[str, Path] = {}
+        frames: dict[str, DataFrame] = {}
         for table_name in TRUSTED_TABLES:
-            out_path = export_dir / f"{table_name}.parquet"
             fq_table = f"{catalog_name}.formatted.{table_name}"
-            log.info("Exporting %s -> %s", fq_table, out_path)
-            con.execute(
-                f"COPY (SELECT * FROM {fq_table}) TO '{out_path.as_posix()}' (FORMAT PARQUET)"
-            )
-            exports[table_name] = out_path
-        return exports
+            log.info("Reading %s directly from DuckDB into Spark", fq_table)
+            pandas_df = con.execute(f"SELECT * FROM {fq_table}").df()
+            frames[table_name] = spark.createDataFrame(pandas_df)
+        return frames
     finally:
         con.close()
 

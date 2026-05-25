@@ -226,11 +226,6 @@ def build_node_embeddings(edges: list[tuple[str, str]], dimensions: int) -> tupl
     return frame, embeddings
 
 
-def first_object(graph: Graph, subject: URIRef, predicate: URIRef) -> URIRef | None:
-    value = next(graph.objects(subject, predicate), None)
-    return value if isinstance(value, URIRef) else None
-
-
 def zero_embedding() -> np.ndarray:
     return np.zeros(EMBEDDING_DIMENSIONS, dtype=float)
 
@@ -322,52 +317,6 @@ def build_record_training_samples(risk_df: pd.DataFrame, embeddings: dict[str, n
     if samples.empty:
         raise ValueError("No record-level KG embedding training samples were generated.")
     return samples
-
-
-def build_training_samples(graph: Graph, embeddings: dict[str, np.ndarray], held_out_nodes: set[URIRef]) -> pd.DataFrame:
-    rows = []
-    for measurement in sorted(held_out_nodes, key=str):
-        population_group = first_object(graph, measurement, hr("forPopulationGroup"))
-        dataset = first_object(graph, measurement, hr("fromDataset"))
-        positive_rate = term_to_float(next(graph.objects(measurement, hr("positiveRate")), None))
-        observations = term_to_int(next(graph.objects(measurement, hr("observationCount")), None))
-
-        if population_group is None or dataset is None or positive_rate is None or observations is None:
-            continue
-        if observations < MIN_OBSERVATIONS_PER_SAMPLE:
-            continue
-
-        group_embedding = embeddings.get(str(population_group))
-        dataset_embedding = embeddings.get(str(dataset))
-        if group_embedding is None or dataset_embedding is None:
-            continue
-
-        feature_vector = np.concatenate(
-            [
-                group_embedding,
-                dataset_embedding,
-                group_embedding * dataset_embedding,
-                np.abs(group_embedding - dataset_embedding),
-            ]
-        )
-        rows.append(
-            {
-                "measurement": str(measurement),
-                "population_group": str(population_group),
-                "dataset": str(dataset),
-                "positive_rate": positive_rate,
-                "observations": observations,
-                **{f"feature_{index:02d}": float(value) for index, value in enumerate(feature_vector)},
-            }
-        )
-
-    frame = pd.DataFrame(rows)
-    if frame.empty:
-        raise ValueError("No eligible KG embedding training samples were generated.")
-
-    frame["source_median_positive_rate"] = frame.groupby("dataset")["positive_rate"].transform("median")
-    frame["high_risk_label"] = (frame["positive_rate"] > frame["source_median_positive_rate"]).astype(int)
-    return frame
 
 
 def fit_embedding_model(samples: pd.DataFrame) -> tuple[str, Pipeline, dict, dict]:

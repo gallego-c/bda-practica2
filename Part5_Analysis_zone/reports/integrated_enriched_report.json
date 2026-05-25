@@ -1,7 +1,7 @@
 {
   "pipeline": "model_pipeline_integrated_enriched",
   "dataset": "integrated_risk_model_input",
-  "run_at_utc": "2026-05-22T11:40:56+00:00",
+  "run_at_utc": "2026-05-25T11:19:22+00:00",
   "rows_total": 322587,
   "rows_train": 258069,
   "rows_test": 64518,

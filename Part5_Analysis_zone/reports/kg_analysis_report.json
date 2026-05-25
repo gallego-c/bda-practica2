@@ -1,11 +1,24 @@
 {
-  "run_at_utc": "2026-05-22T11:22:17+00:00",
+  "pipeline": "kg_analysis_pipeline",
+  "run_at_utc": "2026-05-25T11:16:53+00:00",
   "kg_manifest": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json",
   "analytics_graph": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl",
-  "triple_count": 5573,
+  "full_graph": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.ttl",
+  "analytics_triple_count": 5573,
+  "full_triple_count": 3635316,
+  "graph_structure": {
+    "datasets": 3,
+    "indicators": 17,
+    "population_groups": 26,
+    "age_groups": 13,
+    "outcomes": 3,
+    "aggregate_measurements": 645
+  },
   "queries": [
     {
       "query": "02_indicators_shared_by_datasets.rq",
+      "description": "Indicators appearing in measurements from more than one source dataset",
+      "graph": "analytics",
       "rows_returned": 10,
       "rows": [
         {
@@ -58,35 +71,20 @@
           "label": "Systolic blood pressure",
           "datasetCount": 2
         }
-      ]
+      ],
+      "row_cap_applied": false
     },
     {
       "query": "03_rank_population_groups_by_outcome_rate.rq",
+      "description": "Population groups with the highest heart-disease positive rate (n>=25)",
+      "graph": "analytics",
       "rows_returned": 20,
       "rows": [
-        {
-          "populationGroup": "https://example.org/bda/health-risk/population-group/age-12/gender-male",
-          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
-          "positiveRate": 1.0,
-          "observations": 1
-        },
         {
           "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-male",
           "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
           "positiveRate": 0.75,
           "observations": 28
-        },
-        {
-          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-male",
-          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
-          "positiveRate": 0.75,
-          "observations": 4
-        },
-        {
-          "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-male",
-          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
-          "positiveRate": 0.736842,
-          "observations": 19
         },
         {
           "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-female",
@@ -107,12 +105,6 @@
           "observations": 4489
         },
         {
-          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-male",
-          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
-          "positiveRate": 0.571429,
-          "observations": 7
-        },
-        {
           "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-female",
           "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
           "positiveRate": 0.564067,
@@ -123,24 +115,6 @@
           "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
           "positiveRate": 0.558466,
           "observations": 5918
-        },
-        {
-          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-female",
-          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
-          "positiveRate": 0.545455,
-          "observations": 22
-        },
-        {
-          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-male",
-          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
-          "positiveRate": 0.521739,
-          "observations": 23
-        },
-        {
-          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-female",
-          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
-          "positiveRate": 0.5,
-          "observations": 18
         },
         {
           "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-male",
@@ -183,11 +157,56 @@
           "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
           "positiveRate": 0.307119,
           "observations": 6841
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.291013,
+          "observations": 5096
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "positiveRate": 0.275862,
+          "observations": 29
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-12/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "positiveRate": 0.26562,
+          "observations": 6562
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.259684,
+          "observations": 697
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "positiveRate": 0.229709,
+          "observations": 10374
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "positiveRate": 0.221934,
+          "observations": 1158
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-13/gender-female",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "positiveRate": 0.19559,
+          "observations": 10522
         }
-      ]
+      ],
+      "row_cap_applied": false
     },
     {
       "query": "04_combine_indicators_same_group.rq",
+      "description": "Heart disease, blood pressure and cholesterol rates per group and dataset",
+      "graph": "analytics",
       "rows_returned": 50,
       "rows": [
         {
@@ -540,7 +559,430 @@
           "highBpRate": 0.162185,
           "highCholesterolRate": 0.129193
         }
-      ]
+      ],
+      "row_cap_applied": false
+    },
+    {
+      "query": "06_indicator_consistency_across_datasets.rq",
+      "description": "Indicator positive rates across datasets: min / max / avg / spread",
+      "graph": "analytics",
+      "rows_returned": 0,
+      "rows": [],
+      "row_cap_applied": false
+    },
+    {
+      "query": "07_outcome_rate_by_age_group.rq",
+      "description": "Average outcome rate per age group and dataset",
+      "graph": "analytics",
+      "rows_returned": 32,
+      "rows": [
+        {
+          "ageGroupLabel": "25 to 29",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "avgOutcomeRate": 0.0,
+          "totalObservations": 3
+        },
+        {
+          "ageGroupLabel": "30 to 34",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "avgOutcomeRate": 0.0,
+          "totalObservations": 1
+        },
+        {
+          "ageGroupLabel": "35 to 39",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "avgOutcomeRate": 0.240809,
+          "totalObservations": 1855
+        },
+        {
+          "ageGroupLabel": "40 to 44",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "avgOutcomeRate": 0.3103135,
+          "totalObservations": 8233
+        },
+        {
+          "ageGroupLabel": "45 to 49",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "avgOutcomeRate": 0.432157,
+          "totalObservations": 11186
+        },
+        {
+          "ageGroupLabel": "50 to 54",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "avgOutcomeRate": 0.4649985,
+          "totalObservations": 16747
+        },
+        {
+          "ageGroupLabel": "55 to 59",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "avgOutcomeRate": 0.5612665,
+          "totalObservations": 18085
+        },
+        {
+          "ageGroupLabel": "60 to 64",
+          "dataset": "https://example.org/bda/health-risk/dataset/cardiovascular-disease",
+          "avgOutcomeRate": 0.662238,
+          "totalObservations": 12500
+        },
+        {
+          "ageGroupLabel": "25 to 29",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.0,
+          "totalObservations": 1
+        },
+        {
+          "ageGroupLabel": "30 to 34",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.0,
+          "totalObservations": 2
+        },
+        {
+          "ageGroupLabel": "35 to 39",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.2857145,
+          "totalObservations": 11
+        },
+        {
+          "ageGroupLabel": "40 to 44",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.18793100000000001,
+          "totalObservations": 39
+        },
+        {
+          "ageGroupLabel": "45 to 49",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.2608695,
+          "totalObservations": 32
+        },
+        {
+          "ageGroupLabel": "50 to 54",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.24386000000000002,
+          "totalObservations": 53
+        },
+        {
+          "ageGroupLabel": "55 to 59",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.5800000000000001,
+          "totalObservations": 68
+        },
+        {
+          "ageGroupLabel": "60 to 64",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.6477275,
+          "totalObservations": 50
+        },
+        {
+          "ageGroupLabel": "65 to 69",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.4517545,
+          "totalObservations": 31
+        },
+        {
+          "ageGroupLabel": "70 to 74",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.375,
+          "totalObservations": 8
+        },
+        {
+          "ageGroupLabel": "75 to 79",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "avgOutcomeRate": 0.5,
+          "totalObservations": 2
+        },
+        {
+          "ageGroupLabel": "18 to 24",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.0050625,
+          "totalObservations": 5700
+        },
+        {
+          "ageGroupLabel": "25 to 29",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.0070985,
+          "totalObservations": 7598
+        },
+        {
+          "ageGroupLabel": "30 to 34",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.0112735,
+          "totalObservations": 11123
+        },
+        {
+          "ageGroupLabel": "35 to 39",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.0139945,
+          "totalObservations": 13823
+        },
+        {
+          "ageGroupLabel": "40 to 44",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.0223585,
+          "totalObservations": 16157
+        },
+        {
+          "ageGroupLabel": "45 to 49",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.0365075,
+          "totalObservations": 19819
+        },
+        {
+          "ageGroupLabel": "50 to 54",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.0555345,
+          "totalObservations": 26314
+        },
+        {
+          "ageGroupLabel": "55 to 59",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.075655,
+          "totalObservations": 30832
+        },
+        {
+          "ageGroupLabel": "60 to 64",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.1040885,
+          "totalObservations": 33244
+        },
+        {
+          "ageGroupLabel": "65 to 69",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.1351905,
+          "totalObservations": 32194
+        },
+        {
+          "ageGroupLabel": "70 to 74",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.1742815,
+          "totalObservations": 23533
+        },
+        {
+          "ageGroupLabel": "75 to 79",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.2044815,
+          "totalObservations": 15980
+        },
+        {
+          "ageGroupLabel": "80 or older",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-health-indicators",
+          "avgOutcomeRate": 0.2513545,
+          "totalObservations": 17363
+        }
+      ],
+      "row_cap_applied": false
+    },
+    {
+      "query": "05_population_groups_connected_to_multiple_sources.rq",
+      "description": "Population groups linked to records from multiple datasets",
+      "graph": "full",
+      "rows_returned": 22,
+      "rows": [
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-female",
+          "datasetCount": 3,
+          "recordCount": 29654
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-female",
+          "datasetCount": 3,
+          "recordCount": 26304
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-female",
+          "datasetCount": 3,
+          "recordCount": 26080
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-male",
+          "datasetCount": 3,
+          "recordCount": 19490
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-8/gender-male",
+          "datasetCount": 3,
+          "recordCount": 19331
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-female",
+          "datasetCount": 3,
+          "recordCount": 17931
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-7/gender-male",
+          "datasetCount": 3,
+          "recordCount": 17034
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-female",
+          "datasetCount": 3,
+          "recordCount": 14242
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-6/gender-male",
+          "datasetCount": 3,
+          "recordCount": 13106
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-5/gender-male",
+          "datasetCount": 3,
+          "recordCount": 10187
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-female",
+          "datasetCount": 3,
+          "recordCount": 8887
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-4/gender-male",
+          "datasetCount": 3,
+          "recordCount": 6802
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-3/gender-female",
+          "datasetCount": 3,
+          "recordCount": 6064
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-2/gender-male",
+          "datasetCount": 3,
+          "recordCount": 3609
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-female",
+          "datasetCount": 2,
+          "recordCount": 17755
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-male",
+          "datasetCount": 2,
+          "recordCount": 14470
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-female",
+          "datasetCount": 2,
+          "recordCount": 13163
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-male",
+          "datasetCount": 2,
+          "recordCount": 10378
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-12/gender-female",
+          "datasetCount": 2,
+          "recordCount": 9419
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-12/gender-male",
+          "datasetCount": 2,
+          "recordCount": 6563
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-3/gender-male",
+          "datasetCount": 2,
+          "recordCount": 5062
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-2/gender-female",
+          "datasetCount": 2,
+          "recordCount": 3993
+        }
+      ],
+      "row_cap_applied": false
+    },
+    {
+      "query": "08_top_risk_factor_cooccurrence.rq",
+      "description": "Risk-factor pairs most frequently co-occurring in positive heart-disease records",
+      "graph": "full",
+      "rows_returned": 17,
+      "rows": [
+        {
+          "indicator1Label": "High blood pressure flag",
+          "indicator2Label": "High cholesterol flag",
+          "coOccurringRecords": 24418
+        },
+        {
+          "indicator1Label": "High blood pressure flag",
+          "indicator2Label": "Smoking flag",
+          "coOccurringRecords": 13771
+        },
+        {
+          "indicator1Label": "High cholesterol flag",
+          "indicator2Label": "Smoking flag",
+          "coOccurringRecords": 11707
+        },
+        {
+          "indicator1Label": "Difficulty walking flag",
+          "indicator2Label": "High blood pressure flag",
+          "coOccurringRecords": 8036
+        },
+        {
+          "indicator1Label": "Difficulty walking flag",
+          "indicator2Label": "High cholesterol flag",
+          "coOccurringRecords": 7160
+        },
+        {
+          "indicator1Label": "Difficulty walking flag",
+          "indicator2Label": "Smoking flag",
+          "coOccurringRecords": 6472
+        },
+        {
+          "indicator1Label": "Glucose risk flag",
+          "indicator2Label": "High blood pressure flag",
+          "coOccurringRecords": 5737
+        },
+        {
+          "indicator1Label": "Glucose risk flag",
+          "indicator2Label": "High cholesterol flag",
+          "coOccurringRecords": 4374
+        },
+        {
+          "indicator1Label": "Heavy alcohol consumption flag",
+          "indicator2Label": "High blood pressure flag",
+          "coOccurringRecords": 2283
+        },
+        {
+          "indicator1Label": "Heavy alcohol consumption flag",
+          "indicator2Label": "Smoking flag",
+          "coOccurringRecords": 1456
+        },
+        {
+          "indicator1Label": "Heavy alcohol consumption flag",
+          "indicator2Label": "High cholesterol flag",
+          "coOccurringRecords": 1368
+        },
+        {
+          "indicator1Label": "Glucose risk flag",
+          "indicator2Label": "Smoking flag",
+          "coOccurringRecords": 530
+        },
+        {
+          "indicator1Label": "Glucose risk flag",
+          "indicator2Label": "Heavy alcohol consumption flag",
+          "coOccurringRecords": 401
+        },
+        {
+          "indicator1Label": "Difficulty walking flag",
+          "indicator2Label": "Heavy alcohol consumption flag",
+          "coOccurringRecords": 270
+        },
+        {
+          "indicator1Label": "Exercise-induced angina flag",
+          "indicator2Label": "High cholesterol flag",
+          "coOccurringRecords": 63
+        },
+        {
+          "indicator1Label": "Exercise-induced angina flag",
+          "indicator2Label": "High blood pressure flag",
+          "coOccurringRecords": 43
+        },
+        {
+          "indicator1Label": "Exercise-induced angina flag",
+          "indicator2Label": "Glucose risk flag",
+          "coOccurringRecords": 12
+        }
+      ],
+      "row_cap_applied": false
     }
   ]
 }
