@@ -1,0 +1,182 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{graphicx} % For resizing
+\geometry{margin=2.5cm}
+
+\title{Project 2: Medical Data Pipeline with Knowledge Graphs}
+\author{Sergi Flores, Paula Esteve, Claudia Gallego}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+The goal of this project is to continue building a complete end-to-end data science pipeline by extending the previous work with a knowledge graph layer and graph-based analysis. The new scope focuses on how the RDF representation is designed, how it is queried, and how graph embeddings can support downstream modeling.
+
+\section{Previous work}
+
+In previous project, we cfreated a 5 stage pipeline integrating 3 different datasets. They were from the heathcare domain, focusing on cardiovascular diseases. The first dataset, \textit{Cardiovascular Heart Diseases}, The \textit{Heart Disease Health Indicators} from BRFSS and he \textit{Cleveland Heart Disease dataset}. Our goal was to evaluate the risk of developing such diseases based on both medical and behavioral factors.\\
+
+The architecture as mentioned was divided in 5 stages. The first Zone was the Landing Zone. It ingests three configured Kaggle datasets and stores each extraction as a timestamped raw Parquet snapshot. Keeping ingestion separate from downstream transformations and serves as a stable reference point.\\
+
+The second was the Formatting Zone, that standardizes the data to make sure that the three source datasets are consistent and structured in the same way. Spark is used and the datasets are aligned at the schema level. Then, we use DuckDB to store the formatted data for easy access and a lightweight storage solution.\\
+
+The Trusted Zone is the third layer of the data pipeline, where transformations are applied, strict data-quality constraints and rules are enforced on the standardized data. This zone ensures that the data meets necessary quality standards before moving to the next stages.\\
+
+In the Exploitation Zone, trusted data is integrated and processed to create the combined dataset used in analysis. Any discrepancies between datasets are resolved, and the data is transformed into the unified structure. The data is then aggregated into a singular dataset, the canonical table, thanks to a vertical union.\\
+
+Finally, the Analysis Zone trains two reproducible \emph{integrated} machine learning pipelines over the canonical table. Both analytical pipelines follow the same execution template with some difference in the models. 
+
+\section{Project Overview}
+This project keeps the original five-zone data engineering structure but adds a semantic layer on top of the integrated health data. The main contribution is not only a new storage format, but a graph model that represents records, indicators, population groups, and outcomes in a way that is suitable for academic analysis and reusable querying.
+
+The report therefore emphasizes two graph-oriented tasks: SPARQL exploration of the generated RDF and KGE-based analysis over graph-derived representations. Both are meant to demonstrate how the same integrated dataset can support relational and semantic analytics.
+
+\section{Project improvements}
+The key improvement is the inclusion of a knowledge graph layer built from the trusted and exploited health data. Instead of treating the final table as the only analytical artifact, the project now also exposes the data through RDF, which makes the relationships between records, shared indicators, and population groups explicit.
+
+Another improvement is the formalization of the RDF schema. We created classes such as HealthRecord, Dataset, PopulationGroup, AgeGroup, Gender, Indicator, Outcome, and AggregateMeasurement, and connected them with object and data properties so the graph can be queried in a structured and academically reusable way.
+
+Finally, the analytical focus shifts toward graph-based experimentation. The SPARQL layer supports semantic querying of the graph, while the KGE stage transforms that same graph into vector representations that can be used in predictive tasks, giving the report a stronger emphasis on knowledge extraction rather than only tabular inference.
+
+\section{Knowledge graphs}
+The knowledge graph was built to represent the integrated cardiovascular data in a semantic model that is more expressive than a flat table. Each trusted record becomes a HealthRecord instance, the source datasets are modeled as Dataset nodes, and the shared conceptual layers are represented through PopulationGroup, AgeGroup, Gender, Indicator, and Outcome classes.
+
+The RDF schema was designed for academic clarity and reusability. Object properties such as fromDataset, belongsToAgeGroup, hasGender, belongsToPopulationGroup, hasObservedRiskFactor, and hasOutcome connect records to their context, while data properties store metadata such as run identifiers, indicator labels, aggregate values, and observation counts. This makes the graph suitable for provenance-aware analysis and for demonstrating how heterogeneous datasets can be aligned under a common vocabulary.
+
+Table~\ref{tab:kg-schema} summarizes the central schema components, while Table~\ref{tab:kg-example} shows the kind of record-level and aggregate nodes that are generated from the trusted data.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Element} & \textbf{Role in the graph} & \textbf{Example} \\ \hline
+HealthRecord & Trusted row instance & `hr:record/cardio/...` \\ \hline
+Dataset & Source provenance node & `hr:dataset/cardiovascular-disease` \\ \hline
+PopulationGroup & Shared demographic bridge & `hr:population-group/age-9/gender-female` \\ \hline
+Indicator & Common health concept & `hr:indicator/high-blood-pressure` \\ \hline
+Outcome & Target concept & `hr:outcome/heart-disease-positive` \\ \hline
+AggregateMeasurement & Population summary node & `hr:aggregate-measurement/.../heart-disease-outcome` \\ \hline
+\end{tabular}
+\caption{Main RDF schema components}
+\label{tab:kg-schema}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Node} & \textbf{Connected via} & \textbf{Meaning} \\ \hline
+HealthRecord & fromDataset, belongsToPopulationGroup, hasOutcome & One cleaned trusted observation \\ \hline
+PopulationGroup & populationGroupAgeGroup, populationGroupGender & Shared demographic context \\ \hline
+AggregateMeasurement & measuresIndicator, forPopulationGroup & Group-level statistic \\ \hline
+Indicator & indicatorColumn, indicatorCategory, valueKind & Semantic definition of a feature \\ \hline
+\end{tabular}
+\caption{Example graph connections used in the KG}
+\label{tab:kg-example}
+\end{table}
+
+At the instance level, a trusted row is materialized as a record node linked to its dataset, age band, gender, population group, outcome, and observed risk or protective factors. In parallel, aggregate nodes summarize each `(dataset, age group, gender, indicator)` combination, which gives the graph both micro-level and macro-level analytical value.
+
+Table~\ref{tab:rdf-example} gives a compact example of how the trusted data is translated into RDF triples. The same pattern is repeated for every row, which is what makes the graph reusable across the three datasets without forcing them into one incorrect person-level entity space.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Subject} & \textbf{Predicate} & \textbf{Object} \\ \hline
+\texttt{hr:record/cardio/8f2...} & \texttt{hr:fromDataset} & \texttt{hr:dataset/cardiovascular-disease} \\ \hline
+\texttt{hr:record/cardio/8f2...} & \texttt{hr:hasOutcome} & \texttt{hr:outcome/heart-disease-positive} \\ \hline
+\texttt{hr:record/cardio/8f2...} & \texttt{hr:belongsToPopulationGroup} & \texttt{hr:population-group/age-9/gender-female} \\ \hline
+\texttt{hr:aggregate-measurement/...} & \texttt{hr:positiveRate} & \texttt{"0.372"^^xsd:double} \\ \hline
+\end{tabular}
+\caption{Example RDF triples generated from a trusted row}
+\label{tab:rdf-example}
+\end{table}
+
+\section{Querying with SPARQL}
+SPARQL was used to interrogate the graph at the semantic level rather than through SQL-style joins. The query set explores how records are distributed across population groups, which indicators are shared across datasets, how outcome rates vary by age group, and which risk factors co-occur in positive cases.
+
+These queries are important because they show the analytical value of the graph itself. Instead of only extracting rows, the project can ask questions about concepts and relationships, which is more appropriate for academic exploration of health data integration.
+
+Table~\ref{tab:sparql-queries} lists representative questions and the type of graph result each one targets.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|p{4cm}|p{4cm}|p{5cm}|}
+\hline
+\textbf{Question} & \textbf{Main graph pattern} & \textbf{Result type} \\ \hline
+Which records belong to a given population group? & HealthRecord $\rightarrow$ PopulationGroup $\rightarrow$ Dataset & Record-level instances with outcome labels \\ \hline
+Which indicators are shared across datasets? & AggregateMeasurement $\rightarrow$ Indicator $\rightarrow$ Dataset & Cross-dataset indicator comparison \\ \hline
+How does outcome rate vary by age band? & AggregateMeasurement $\rightarrow$ PopulationGroup $\rightarrow$ AgeGroup & Ranked age-group rates \\ \hline
+Which risk factors co-occur in positive cases? & HealthRecord $\rightarrow$ hasObservedRiskFactor & Co-occurrence counts \\ \hline
+\end{tabular}
+\caption{Representative SPARQL exploration tasks}
+\label{tab:sparql-queries}
+\end{table}
+
+For academic purposes, this layer is useful because it supports questions that are naturally semantic. For example, instead of asking only for rows with a specific blood-pressure value, the graph can ask for population groups with high positive rates, or for indicators whose prevalence changes across datasets.
+
+Table~\ref{tab:sparql-example} shows one representative question and the semantic result it expects. This is the main benefit of SPARQL in the report: the query is not about a single table, but about traversing relationships between records, groups, and aggregates.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|p{5cm}|p{5.2cm}|}
+\hline
+\textbf{Example SPARQL question} & \textbf{What it returns} \\ \hline
+Which population groups have the highest heart-disease positive rate in a given dataset? & A ranked list of \texttt{PopulationGroup} nodes with their \texttt{positiveRate} and \texttt{observationCount}. \\ \hline
+Which indicators appear in more than one source dataset? & Shared \texttt{Indicator} nodes, showing how the common vocabulary connects the three sources. \\ \hline
+Which records belong to a female age-9 group? & Concrete \texttt{HealthRecord} instances linked to the selected demographic context. \\ \hline
+\end{tabular}
+\caption{Example SPARQL exploration goals}
+\label{tab:sparql-example}
+\end{table}
+
+\section{KGE-based analysis}
+The KGE-based analysis uses the knowledge graph as a source of structured features. Graph entities and relations are transformed into embeddings, and those embeddings are then used as inputs for predictive models. In this way, the graph is not only a descriptive layer, but also a representation learning layer.
+
+This stage complements the SPARQL exploration because it turns semantic structure into numerical vectors that can support downstream prediction. The important point is that the graph captures context that is not available in the tabular form alone, so the embedding-based analysis can exploit relationships between datasets, population groups, and indicators while remaining compatible with standard machine learning workflows.
+
+Table~\ref{tab:kge-pipeline} shows the main steps followed by the KGE pipeline and the type of representation each step produces.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|p{5.5cm}|p{4.5cm}|}
+\hline
+\textbf{Step} & \textbf{What it does} & \textbf{Output} \\ \hline
+Graph loading & Reads the RDF analytics graph and schema & RDF graph object \\ \hline
+Edge construction & Converts triples into URI-to-URI relationships & Graph edge list \\ \hline
+Embedding learning & Applies matrix-based representation learning & Node embedding vectors \\ \hline
+Record feature assembly & Combines dataset, population-group, and indicator vectors & Model-ready feature matrix \\ \hline
+Predictive modeling & Trains a classifier on embedding features & KGE-based report and model \\ \hline
+\end{tabular}
+\caption{KGE analysis pipeline}
+\label{tab:kge-pipeline}
+\end{table}
+
+An example representation is the combination of dataset-level, population-group-level, and indicator-level vectors into a single record embedding. This gives each health record both its original semantic context and a numerical summary that can be used for classification or comparison experiments.
+
+Table~\ref{tab:kge-compare} clarifies the difference between the graph query layer and the embedding layer. SPARQL is useful when the objective is interpretation and exact answers, while KGE is useful when the objective is to learn latent structure that improves predictive performance.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|p{4.2cm}|p{5.3cm}|p{3.2cm}|}
+\hline
+\textbf{Aspect} & \textbf{SPARQL querying} & \textbf{KGE analysis} \\ \hline
+Goal & Retrieve explicit semantic facts from the graph & Learn latent numeric representations \\ \hline
+Output & Rows, counts, rates, ranked groups & Embedding vectors and model features \\ \hline
+Strength & Interpretability and provenance & Compactness and predictive utility \\ \hline
+Typical use & Academic exploration and validation & Downstream classification experiments \\ \hline
+\end{tabular}
+\caption{Difference between querying and embedding-based analysis}
+\label{tab:kge-compare}
+\end{table}
+
+This distinction matters in the report because it shows that the graph is doing two different jobs. First, it supports direct knowledge retrieval through SPARQL. Second, it serves as a representation-learning substrate for KGE, where the structural information of the RDF graph is transformed into features that a model can use.
+\end{document}
