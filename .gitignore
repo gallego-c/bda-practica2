@@ -3,7 +3,7 @@
 .env
 .venv/
 .venv-win/
-.hadoop
+
 
 *.crc
 .pytest_cache/

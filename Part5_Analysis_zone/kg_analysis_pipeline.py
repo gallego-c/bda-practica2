@@ -96,6 +96,30 @@ def load_graph(graph_path: Path) -> Graph:
     return graph
 
 
+def resolve_kg_path(path_text: str, fallback_dir: Path) -> Path:
+    path = Path(path_text)
+    if path.exists():
+        return path
+
+    fallback = fallback_dir / path.name
+    if fallback.exists():
+        return fallback
+
+    return path
+
+
+def resolve_sparql_dir(path_text: str) -> Path:
+    path = Path(path_text)
+    if path.exists():
+        return path
+
+    fallback = KG_ROOT / "sparql"
+    if fallback.exists():
+        return fallback
+
+    return path
+
+
 def run_query(graph: Graph, query_path: Path, source_label: str, row_cap: int = 200) -> dict:
     query_text = query_path.read_text(encoding="utf-8")
     results = graph.query(query_text)
@@ -134,9 +158,9 @@ def main() -> None:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     manifest = load_manifest()
 
-    analytics_path = Path(manifest["storage"]["analytics_graph_file"])
-    full_path = Path(manifest["storage"]["graph_file"])
-    sparql_dir = Path(manifest["storage"]["sparql_query_dir"])
+    analytics_path = resolve_kg_path(manifest["storage"]["analytics_graph_file"], KG_ROOT)
+    full_path = resolve_kg_path(manifest["storage"]["graph_file"], KG_ROOT)
+    sparql_dir = resolve_sparql_dir(manifest["storage"]["sparql_query_dir"])
 
     log.info("Loading analytics graph: %s", analytics_path)
     analytics_graph = load_graph(analytics_path)

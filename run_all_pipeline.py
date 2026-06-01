@@ -52,6 +52,10 @@ def main() -> None:
     if args.skip_landing:
         print("[INFO] Landing step skipped by flag.")
     elif not kaggle_config_available():
+        if strict:
+            print("[ERROR] Landing cannot run: ~/.kaggle/kaggle.json not found.")
+            print("[ERROR] Configure Kaggle credentials or rerun with --skip-landing --strict.")
+            raise SystemExit(1)
         print("[WARN] Landing skipped: ~/.kaggle/kaggle.json not found.")
         print("[WARN] Use --strict with configured kaggle credentials if you want to enforce Part1.")
     else:

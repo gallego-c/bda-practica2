@@ -81,6 +81,9 @@ def configure_hadoop_home(project_root: Path) -> str:
 def configure_spark_runtime(project_root: Path) -> str:
     require_spark_compatible_java()
 
+    os.environ.setdefault("SPARK_LOCAL_HOSTNAME", "localhost")
+    os.environ.setdefault("SPARK_LOCAL_IP", "127.0.0.1")
+
     username = os.environ.get("HADOOP_USER_NAME") or os.environ.get("USER") or os.environ.get("USERNAME")
     username = username or getpass.getuser() or "spark"
     os.environ.setdefault("USER", username)

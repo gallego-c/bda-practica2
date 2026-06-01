@@ -1,7 +1,7 @@
 {
   "pipeline": "model_pipeline_integrated_core",
   "dataset": "integrated_risk_model_input",
-  "run_at_utc": "2026-05-25T11:18:37+00:00",
+  "run_at_utc": "2026-06-01T15:45:50+00:00",
   "rows_total": 322587,
   "rows_train": 258069,
   "rows_test": 64518,
@@ -24,7 +24,7 @@
     }
   },
   "selected_model": "rf_balanced",
-  "decision_threshold": 0.6463803900946006,
+  "decision_threshold": 0.6463803900946007,
   "features": [
     "age_years_proxy",
     "bmi",
@@ -119,20 +119,20 @@
     }
   ],
   "test_metrics": {
-    "accuracy": 0.7931584984035464,
-    "precision": 0.4430420922516427,
-    "recall": 0.5873727790236329,
-    "f1": 0.505099202670128,
+    "accuracy": 0.7934374903127809,
+    "precision": 0.44352473440656975,
+    "recall": 0.5869415214766258,
+    "f1": 0.5052529977354568,
     "roc_auc": 0.8174601747948018,
     "pr_auc": 0.49396610716836764,
     "confusion_matrix": [
       [
-        44363,
-        8561
+        44386,
+        8538
       ],
       [
-        4784,
-        6810
+        4789,
+        6805
       ]
     ]
   }

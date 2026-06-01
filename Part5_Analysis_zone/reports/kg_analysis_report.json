@@ -1,6 +1,6 @@
 {
   "pipeline": "kg_analysis_pipeline",
-  "run_at_utc": "2026-05-25T11:16:53+00:00",
+  "run_at_utc": "2026-06-01T15:43:56+00:00",
   "kg_manifest": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json",
   "analytics_graph": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl",
   "full_graph": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.ttl",
@@ -566,8 +566,58 @@
       "query": "06_indicator_consistency_across_datasets.rq",
       "description": "Indicator positive rates across datasets: min / max / avg / spread",
       "graph": "analytics",
-      "rows_returned": 0,
-      "rows": [],
+      "rows_returned": 7,
+      "rows": [
+        {
+          "indicatorLabel": "Heart disease outcome",
+          "datasets": 3,
+          "minRate": 0.0,
+          "maxRate": 1.0,
+          "avgRate": 0.2355329193548387
+        },
+        {
+          "indicatorLabel": "High blood pressure flag",
+          "datasets": 3,
+          "minRate": 0.0,
+          "maxRate": 1.0,
+          "avgRate": 0.5018582741935486
+        },
+        {
+          "indicatorLabel": "High cholesterol flag",
+          "datasets": 3,
+          "minRate": 0.0,
+          "maxRate": 1.0,
+          "avgRate": 0.45613187096774194
+        },
+        {
+          "indicatorLabel": "Smoking flag",
+          "datasets": 2,
+          "minRate": 0.0,
+          "maxRate": 0.6274,
+          "avgRate": 0.30295475609756095
+        },
+        {
+          "indicatorLabel": "Physical activity flag",
+          "datasets": 2,
+          "minRate": 0.63315,
+          "maxRate": 1.0,
+          "avgRate": 0.7983188292682928
+        },
+        {
+          "indicatorLabel": "Glucose risk flag",
+          "datasets": 2,
+          "minRate": 0.0,
+          "maxRate": 0.263158,
+          "avgRate": 0.09969855555555555
+        },
+        {
+          "indicatorLabel": "Heavy alcohol consumption flag",
+          "datasets": 2,
+          "minRate": 0.0,
+          "maxRate": 0.131994,
+          "avgRate": 0.0565079024390244
+        }
+      ],
       "row_cap_applied": false
     },
     {

@@ -43,6 +43,8 @@ def get_spark() -> SparkSession:
         .master(os.getenv("SPARK_MASTER", "local[*]"))
         .config("spark.sql.shuffle.partitions", "4")
         .config("spark.sql.legacy.timeParserPolicy", "LEGACY")
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
         .config("spark.sql.execution.arrow.pyspark.enabled", "true")
         .config("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
         .config("spark.pyspark.python", python_exec)
