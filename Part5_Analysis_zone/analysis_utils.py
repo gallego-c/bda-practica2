@@ -42,21 +42,6 @@ def load_risk_model_input(db_path: Path) -> pd.DataFrame:
         con.close()
 
 
-def load_exploitation_source(db_path: Path, source_dataset: str) -> pd.DataFrame:
-    con = duckdb.connect(str(db_path), read_only=True)
-    try:
-        return con.execute(
-            """
-            SELECT *
-            FROM exploitation.exploitation.risk_model_input
-            WHERE source_dataset = ?
-            """,
-            [source_dataset],
-        ).df()
-    finally:
-        con.close()
-
-
 def build_preprocessor(numeric_features: list[str], categorical_features: list[str]) -> ColumnTransformer:
     numeric_pipe = Pipeline(
         steps=[
@@ -171,6 +156,35 @@ def fit_candidate_models(
     return best_name, fitted_models[best_name], model_scores
 
 
+def model_feature_importance(model: Pipeline, top_n: int = 20) -> list[dict]:
+    preprocessor = model.named_steps["prep"]
+    classifier = model.named_steps["clf"]
+    feature_names = preprocessor.get_feature_names_out()
+
+    if hasattr(classifier, "feature_importances_"):
+        values = classifier.feature_importances_
+        importance_type = "gini_importance"
+    elif hasattr(classifier, "coef_"):
+        values = np.abs(classifier.coef_[0])
+        importance_type = "absolute_coefficient"
+    else:
+        return []
+
+    ranked = sorted(
+        zip(feature_names, values),
+        key=lambda item: float(item[1]),
+        reverse=True,
+    )[:top_n]
+    return [
+        {
+            "feature": str(feature_name),
+            "importance": float(importance),
+            "importance_type": importance_type,
+        }
+        for feature_name, importance in ranked
+    ]
+
+
 def prepare_model_frame(
     df: pd.DataFrame,
     numeric_features: list[str],
@@ -192,23 +206,3 @@ def prepare_model_frame(
 
     y = frame[target_col].astype(int).to_numpy()
     return X, y
-
-
-def sample_balanced_sources(
-    df: pd.DataFrame,
-    source_col: str,
-    random_seed: int,
-) -> pd.DataFrame:
-    counts = df[source_col].value_counts()
-    if counts.empty:
-        return df.copy()
-
-    min_count = int(counts.min())
-    parts = []
-    for source_name in sorted(counts.index):
-        source_df = df[df[source_col] == source_name]
-        if len(source_df) > min_count:
-            source_df = source_df.sample(n=min_count, random_state=random_seed)
-        parts.append(source_df)
-
-    return pd.concat(parts, axis=0).sample(frac=1.0, random_state=random_seed).reset_index(drop=True)

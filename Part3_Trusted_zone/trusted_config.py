@@ -8,7 +8,6 @@ FORMATTED_DUCKDB_PATH = PROJECT_ROOT / "Part2_Formatting_zone" / "formatted_zone
 TRUSTED_ZONE_ROOT = SCRIPT_DIR / "trusted_zone"
 TRUSTED_PARQUET_ROOT = TRUSTED_ZONE_ROOT / "parquet"
 TRUSTED_DUCKDB_PATH = TRUSTED_ZONE_ROOT / "trusted.duckdb"
-STAGING_ROOT = SCRIPT_DIR / "_staging" / "formatted_exports"
 
 
 def utc_now_iso() -> str:

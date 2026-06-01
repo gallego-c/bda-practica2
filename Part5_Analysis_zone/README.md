@@ -1,200 +1,118 @@
 # Part 5: Analysis Zone
 
-The Analysis Zone implements two complementary predictive pipelines on integrated datasets, plus a graph-based SPARQL analysis pipeline. All pipelines consume data from the Exploitation Zone.
+Two analytical pipelines are required by the P2 spec: one based on
+**pattern-matching SPARQL queries** and one based on **ML over KG embeddings**.
+Two additional ML baselines on the integrated exploitation table act as
+references.
 
-**Purpose:** Demonstrate actionable ML models and semantic graph analysis on integrated cross-dataset information.
+## Pipelines
 
-## 🎯 Analysis Approach
+### 1. SPARQL analysis — `kg_analysis_pipeline.py`
 
-All pipelines use a single integrated data source rather than training separate models per dataset:
-- Data is loaded from the compatibility table in Exploitation Zone
-- Three datasets are combined without false person-level merging
-- Two model variants are trained and compared
+Reads the compact analytics graph
+(`Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl`)
+and executes the curated SPARQL queries written by Part4. Produces
+`reports/kg_analysis_report.json` with the query results.
 
-## 📊 Model Pipelines
+### 2. KG embedding ML — `kg_embedding_pipeline.py`
 
-### 1. Integrated Core Model
-**Feature Set:** Conservative, widely-available indicators
+Builds a typed RDF adjacency from the analytics graph, holds out the outcome
+aggregate measurement nodes to avoid label leakage, computes node embeddings
+with `TruncatedSVD`, composes record-level feature vectors from dataset,
+population-group and indicator embeddings, and trains
+`LogisticRegression` / `RandomForestClassifier`.
 
-**Numeric Features:**
-- `age_years_proxy` - Derived age
-- `bmi` - Body Mass Index
+Output:
+- `models/kg_embedding_model.pkl`
+- `reports/kg_embedding_report.json`
+- `reports/kg_node_embeddings.csv`
+- `reports/kg_embedding_training_data.csv`
 
-**Categorical Features:**
-- `gender`
-- `high_blood_pressure_flag`
-- `high_cholesterol_flag`
-- `glucose_risk_flag`
-- `smoking_flag`
-- `physical_activity_flag`
-- `heavy_alcohol_flag`
+### 3. Integrated baselines — `analysis_pipeline.py`
 
-**Model Selection:** ROC-AUC cross-validation metric
+Two reference models trained on the same integrated `exploitation.risk_model_input`:
 
-### 2. Integrated Enriched Model
-**Feature Set:** Extended with additional clinical variables
+- **Integrated Core**: age, BMI, gender, risk-factor flags (model selected by CV ROC-AUC).
+- **Integrated Enriched**: adds clinical variables — BP, max heart rate,
+  general health score, mental/physical unhealthy days, difficulty walking,
+  exercise-induced angina (model selected by CV PR-AUC).
 
-**Additional Numeric Features:**
-- `systolic_bp` - Systolic blood pressure
-- `diastolic_bp` - Diastolic blood pressure
-- `general_health_score` - Self-reported health
-- `mental_unhealthy_days` - Mental health indicator
-- `physical_unhealthy_days` - Physical health indicator
-- `max_heart_rate` - Cardiovascular capacity
+Each report includes accuracy, precision, recall, F1, ROC-AUC, PR-AUC,
+confusion matrix, decision threshold and top feature importance.
 
-**Additional Categorical Features:**
-- `difficulty_walking_flag`
-- `exercise_induced_angina`
-
-**Model Selection:** PR-AUC cross-validation metric
-
-### Candidate Models (Both Pipelines)
-- Logistic Regression (balanced)
-- Gradient Boosting (tuned)
-
-## 🧠 Graph Analysis Pipeline
-
-`kg_analysis_pipeline.py` operates directly on the RDF Knowledge Graph:
-- Loads the compact analytics graph (Turtle format)
-- Executes SPARQL queries without flattening
-- Provides graph-native analysis and insights
-- Demonstrates semantic integration benefits
-
-## 🚀 Usage
-
-### Run ML Pipelines
-
-```bash
-python Part5_Analysis_zone/analysis_pipeline.py
-```
-
-This trains both integrated models and produces comparison reports.
-
-### Run Graph Analysis
+## Usage
 
 ```bash
 python Part5_Analysis_zone/kg_analysis_pipeline.py
+python Part5_Analysis_zone/kg_embedding_pipeline.py
+python Part5_Analysis_zone/analysis_pipeline.py
 ```
 
-Executes SPARQL queries on the Knowledge Graph and generates analytical insights.
-
-### Processing Time
-- ML pipelines: 2-5 minutes (depending on cross-validation folds)
-- Graph analysis: 1-2 minutes
-
-## 📥 Inputs
-
-From Exploitation Zone:
-- `Part4_Exploitation_zone/exploitation_zone/exploitation.duckdb`
-  - `exploitation.risk_model_input` - ML training data table
-- `Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl` - Knowledge Graph
-
-## 📤 Outputs
-
-### Trained Models
-```
-Part5_Analysis_zone/models/
-├── integrated_core_model.pkl         # Pickled model object
-└── integrated_enriched_model.pkl     # Pickled model object
-```
-
-### Reports
-```
-Part5_Analysis_zone/reports/
-├── integrated_core_report.json       # Core model performance metrics
-├── integrated_enriched_report.json   # Enriched model performance metrics
-├── summary_report.json               # Side-by-side comparison
-└── kg_analysis_report.json           # Graph analysis findings
-```
-
-### Report Contents
-Each model report includes:
-- Accuracy, Precision, Recall, F1-Score
-- ROC-AUC or PR-AUC (depending on model)
-- Confusion matrix
-- Feature importance rankings
-- Cross-validation fold details
-- Training duration
-
-## 🛠️ Configuration
-
-Key scripts:
-- `analysis_pipeline.py` - ML orchestrator
-- `kg_analysis_pipeline.py` - SPARQL-based graph analysis
-- `analysis_utils.py` - Data loading, preprocessing, validation
-- `model_pipeline_integrated_core.py` - Core model training
-- `model_pipeline_integrated_enriched.py` - Enriched model training
-- `analysis_config.py` - Shared configuration
-
-## 📈 Feature Engineering
-
-Both pipelines apply:
-- **Scaling:** StandardScaler for numeric features
-- **Encoding:** LabelEncoder for categorical features
-- **Validation:** Train/test split stratified by outcome
-- **Cross-validation:** 5-fold stratified CV
-
-## 🔍 Model Comparison
-
-The `summary_report.json` compares:
-- Model accuracy on held-out test sets
-- Cross-validation score distributions
-- Feature set complexity (core vs. enriched)
-- Computational cost
-- Interpretability vs. performance tradeoff
-
-This enables data-driven decisions about which model variant is appropriate for your use case.
-
-## 📚 Further Reading
-
-For implementation details, hyperparameter tuning, and validation methodology, see the script docstrings in each `model_pipeline_*.py` file.
-  - `LogisticRegression`
-  - `max_iter=2000`
-  - `class_weight="balanced"`
-  - `random_state=42`
-- `rf_balanced`
-  - `RandomForestClassifier`
-  - `n_estimators=120`
-  - `max_depth=12`
-  - `min_samples_leaf=12`
-  - `class_weight="balanced_subsample"`
-  - `random_state=42`
-  - `n_jobs=-1`
+The combined orchestrator `run_all_pipeline.py` calls them in this exact
+order so the `kg_embedding_report.json` is available when the baseline
+summary is written.
 
 ## Preprocessing
 
-Preprocessing is performed inside a scikit-learn `Pipeline`:
+Tabular pipelines use a scikit-learn `Pipeline`:
 
-- numeric variables:
-  median imputation + `StandardScaler`
-- categorical variables:
-  most-frequent imputation + `OneHotEncoder(handle_unknown="ignore")`
+- numeric: median imputation + `StandardScaler`
+- categorical: most-frequent imputation + `OneHotEncoder(handle_unknown="ignore")`
 
-In addition:
+Training uses stratified train/test split (`test_size=0.20`,
+`random_state=42`) and stratified `StratifiedKFold` cross-validation
+(`CV_FOLDS=3`). Decision threshold is the F1-optimal threshold on the
+training set.
 
-- stratified train/test split by target
-- `test_size=0.20`
-- `random_state=42`
-- stratified cross-validation with `3` folds
-- decision threshold selected by best `F1` on the training set
+`source_dataset` is kept in the table for traceability but is **not** a model
+feature; the three sources train jointly without that leak.
 
-## Important Interpretation Notes
+## KG Embedding Details
 
-- `source_dataset` is kept for traceability and later analysis
-- `source_dataset` is not used as a model feature
-- training uses all three sources together in the same training matrix
+- Edges are typed: each RDF predicate is materialised as an intermediate
+  predicate node, so subject–predicate–object becomes subject–predicate node
+  and predicate node–object.
+- The held-out outcome aggregate nodes do not contribute to the embeddings
+  used for training.
+- Embedding dimension: 16 (`EMBEDDING_DIMENSIONS`).
+- Maximum record samples: 60 000 (`MAX_RECORD_SAMPLES`).
+- The final per-record feature vector concatenates dataset, population-group
+  and indicator-group mean embeddings, element-wise products and absolute
+  differences, plus three indicator counts.
 
-## Reported Metrics
+## Inputs
 
-- accuracy
-- precision
-- recall
-- F1
-- ROC-AUC
-- PR-AUC
-- confusion matrix
+- `Part4_Exploitation_zone/exploitation_zone/exploitation.duckdb`
+  - `exploitation.risk_model_input` — integrated training table.
+- `Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl`
+  — compact RDF analytics graph.
+- `Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json`
+  — manifest used to resolve paths reliably.
 
-## Related Notebooks
+## Outputs
 
-- `notebooks/01_data_pipeline_validation.ipynb`
-- `notebooks/02_model_results_and_comparison.ipynb`
+```
+Part5_Analysis_zone/
+├── models/
+│   ├── integrated_core_model.pkl
+│   ├── integrated_enriched_model.pkl
+│   └── kg_embedding_model.pkl
+└── reports/
+    ├── integrated_core_report.json
+    ├── integrated_enriched_report.json
+    ├── kg_embedding_report.json
+    ├── kg_analysis_report.json
+    ├── kg_node_embeddings.csv
+    ├── kg_embedding_training_data.csv
+    └── summary_report.json
+```
+
+## Notebooks
+
+The Jupyter notebooks under `notebooks/` document and visualise the results:
+
+- `02_knowledge_graph_exploration.ipynb` — runs the SPARQL queries and plots
+  the analytical outputs.
+- `03_model_comparison_and_explainability.ipynb` — compares the three
+  models, shows feature importance and projects the KG node embeddings into
+  2D for inspection.

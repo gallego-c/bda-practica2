@@ -20,7 +20,15 @@ import kaggle
 from pyspark.sql import SparkSession
 
 
-LANDING_ZONE_ROOT = Path("landing_zone")
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from spark_runtime import configure_spark_runtime
+
+
+LANDING_ZONE_ROOT = SCRIPT_DIR / "landing_zone"
 
 DATASETS = [
     ("sulianova/cardiovascular-disease-dataset", "cardiovascular_disease"),
@@ -38,13 +46,28 @@ log = logging.getLogger(__name__)
 
 
 def get_spark() -> SparkSession:
-    return (
+    java_options = configure_spark_runtime(PROJECT_ROOT)
+    python_exec = sys.executable
+    os.environ["PYSPARK_PYTHON"] = python_exec
+    os.environ["PYSPARK_DRIVER_PYTHON"] = python_exec
+
+    builder = (
         SparkSession.builder
         .appName("LandingZone_DataCollector")
         .master(os.getenv("SPARK_MASTER", "local[*]"))
         .config("spark.sql.shuffle.partitions", "4")
-        .getOrCreate()
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
+        .config("spark.pyspark.python", python_exec)
+        .config("spark.pyspark.driver.python", python_exec)
     )
+    if java_options:
+        builder = (
+            builder
+            .config("spark.driver.extraJavaOptions", java_options)
+            .config("spark.executor.extraJavaOptions", java_options)
+        )
+    return builder.getOrCreate()
 
 
 def download_kaggle_dataset(kaggle_id: str, dest_dir: Path) -> Path:

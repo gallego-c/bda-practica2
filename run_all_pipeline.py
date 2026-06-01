@@ -52,6 +52,10 @@ def main() -> None:
     if args.skip_landing:
         print("[INFO] Landing step skipped by flag.")
     elif not kaggle_config_available():
+        if strict:
+            print("[ERROR] Landing cannot run: ~/.kaggle/kaggle.json not found.")
+            print("[ERROR] Configure Kaggle credentials or rerun with --skip-landing --strict.")
+            raise SystemExit(1)
         print("[WARN] Landing skipped: ~/.kaggle/kaggle.json not found.")
         print("[WARN] Use --strict with configured kaggle credentials if you want to enforce Part1.")
     else:
@@ -64,6 +68,7 @@ def main() -> None:
         ("Part3_Trusted", PROJECT_ROOT / "Part3_Trusted_zone" / "trusted_pipeline.py", PROJECT_ROOT),
         ("Part4_Exploitation", PROJECT_ROOT / "Part4_Exploitation_zone" / "exploitation_pipeline.py", PROJECT_ROOT),
         ("Part5_KG_Analysis", PROJECT_ROOT / "Part5_Analysis_zone" / "kg_analysis_pipeline.py", PROJECT_ROOT),
+        ("Part5_KG_Embedding_ML", PROJECT_ROOT / "Part5_Analysis_zone" / "kg_embedding_pipeline.py", PROJECT_ROOT),
         ("Part5_Analysis", PROJECT_ROOT / "Part5_Analysis_zone" / "analysis_pipeline.py", PROJECT_ROOT),
     ])
 

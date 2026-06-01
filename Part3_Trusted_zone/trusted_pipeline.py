@@ -15,8 +15,8 @@ from trusted_config import TRUSTED_DUCKDB_PATH, build_run_id
 from trusted_rules import clean_cardiovascular, clean_cdc_indicators, clean_cleveland
 from trusted_storage import (
     ensure_dirs,
-    export_formatted_tables_to_parquet,
     materialize_trusted_duckdb,
+    read_formatted_tables,
     write_parquet_snapshot,
     write_quality_and_quarantine,
 )
@@ -41,6 +41,10 @@ def get_spark() -> SparkSession:
         .appName("TrustedZone_DataQualityPipeline")
         .master(os.getenv("SPARK_MASTER", "local[*]"))
         .config("spark.sql.shuffle.partitions", "4")
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
+        .config("spark.sql.execution.arrow.pyspark.enabled", "true")
+        .config("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
         .config("spark.pyspark.python", python_exec)
         .config("spark.pyspark.driver.python", python_exec)
     )
@@ -60,11 +64,10 @@ def main() -> None:
 
     spark = get_spark()
     try:
-        exported = export_formatted_tables_to_parquet(run_id, log)
-
-        cardio_raw = spark.read.parquet(str(exported["cardiovascular_disease"]))
-        cdc_raw = spark.read.parquet(str(exported["heart_disease_health_indicators"]))
-        cleveland_raw = spark.read.parquet(str(exported["heart_disease_cleveland"]))
+        formatted = read_formatted_tables(spark, log)
+        cardio_raw = formatted["cardiovascular_disease"]
+        cdc_raw = formatted["heart_disease_health_indicators"]
+        cleveland_raw = formatted["heart_disease_cleveland"]
 
         quality_metrics: list[dict] = []
         quarantine_dfs = []

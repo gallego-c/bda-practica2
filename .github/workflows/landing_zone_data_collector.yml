@@ -1,0 +1,65 @@
+name: Landing Zone Data Collector
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      dataset_filter:
+        description: "Dataset name to ingest (empty = all)"
+        required: false
+        default: ""
+
+jobs:
+  collect-data:
+    name: Ingest Kaggle datasets
+    runs-on: ubuntu-latest
+
+    env:
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Java 17
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y openjdk-17-jdk
+          java -version
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          python -m pip install -r requirements.txt
+
+      - name: Configure Kaggle credentials
+        run: |
+          mkdir -p ~/.kaggle
+          printf '{"username":"%s","key":"%s"}' "$KAGGLE_USERNAME" "$KAGGLE_KEY" > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      - name: Run Landing Zone collector
+        working-directory: ${{ github.workspace }}
+        run: |
+          python Part1_Landing_zone/data_collector.py
+
+      - name: Show Landing Zone structure
+        if: always()
+        run: |
+          find Part1_Landing_zone/landing_zone -type f | sort
+          du -sh Part1_Landing_zone/landing_zone/
+
+      - name: Upload Landing Zone artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: landing-zone-${{ github.run_id }}
+          path: Part1_Landing_zone/landing_zone/
+          retention-days: 30
