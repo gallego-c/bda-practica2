@@ -84,6 +84,22 @@ Indicator & indicatorColumn, indicatorCategory, valueKind & Semantic definition 
 
 At the instance level, a trusted row is materialized as a record node linked to its dataset, age band, gender, population group, outcome, and observed risk or protective factors. In parallel, aggregate nodes summarize each `(dataset, age group, gender, indicator)` combination, which gives the graph both micro-level and macro-level analytical value.
 
+Table~\ref{tab:rdf-example} gives a compact example of how the trusted data is translated into RDF triples. The same pattern is repeated for every row, which is what makes the graph reusable across the three datasets without forcing them into one incorrect person-level entity space.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Subject} & \textbf{Predicate} & \textbf{Object} \\ \hline
+\texttt{hr:record/cardio/8f2...} & \texttt{hr:fromDataset} & \texttt{hr:dataset/cardiovascular-disease} \\ \hline
+\texttt{hr:record/cardio/8f2...} & \texttt{hr:hasOutcome} & \texttt{hr:outcome/heart-disease-positive} \\ \hline
+\texttt{hr:record/cardio/8f2...} & \texttt{hr:belongsToPopulationGroup} & \texttt{hr:population-group/age-9/gender-female} \\ \hline
+\texttt{hr:aggregate-measurement/...} & \texttt{hr:positiveRate} & \texttt{"0.372"^^xsd:double} \\ \hline
+\end{tabular}
+\caption{Example RDF triples generated from a trusted row}
+\label{tab:rdf-example}
+\end{table}
+
 \section{Querying with SPARQL}
 SPARQL was used to interrogate the graph at the semantic level rather than through SQL-style joins. The query set explores how records are distributed across population groups, which indicators are shared across datasets, how outcome rates vary by age group, and which risk factors co-occur in positive cases.
 
@@ -106,6 +122,21 @@ Which risk factors co-occur in positive cases? & HealthRecord $\rightarrow$ hasO
 \end{table}
 
 For academic purposes, this layer is useful because it supports questions that are naturally semantic. For example, instead of asking only for rows with a specific blood-pressure value, the graph can ask for population groups with high positive rates, or for indicators whose prevalence changes across datasets.
+
+Table~\ref{tab:sparql-example} shows one representative question and the semantic result it expects. This is the main benefit of SPARQL in the report: the query is not about a single table, but about traversing relationships between records, groups, and aggregates.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|p{5cm}|p{5.2cm}|}
+\hline
+\textbf{Example SPARQL question} & \textbf{What it returns} \\ \hline
+Which population groups have the highest heart-disease positive rate in a given dataset? & A ranked list of \texttt{PopulationGroup} nodes with their \texttt{positiveRate} and \texttt{observationCount}. \\ \hline
+Which indicators appear in more than one source dataset? & Shared \texttt{Indicator} nodes, showing how the common vocabulary connects the three sources. \\ \hline
+Which records belong to a female age-9 group? & Concrete \texttt{HealthRecord} instances linked to the selected demographic context. \\ \hline
+\end{tabular}
+\caption{Example SPARQL exploration goals}
+\label{tab:sparql-example}
+\end{table}
 
 \section{KGE-based analysis}
 The KGE-based analysis uses the knowledge graph as a source of structured features. Graph entities and relations are transformed into embeddings, and those embeddings are then used as inputs for predictive models. In this way, the graph is not only a descriptive layer, but also a representation learning layer.
@@ -130,4 +161,22 @@ Predictive modeling & Trains a classifier on embedding features & KGE-based repo
 \end{table}
 
 An example representation is the combination of dataset-level, population-group-level, and indicator-level vectors into a single record embedding. This gives each health record both its original semantic context and a numerical summary that can be used for classification or comparison experiments.
+
+Table~\ref{tab:kge-compare} clarifies the difference between the graph query layer and the embedding layer. SPARQL is useful when the objective is interpretation and exact answers, while KGE is useful when the objective is to learn latent structure that improves predictive performance.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|p{4.2cm}|p{5.3cm}|p{3.2cm}|}
+\hline
+\textbf{Aspect} & \textbf{SPARQL querying} & \textbf{KGE analysis} \\ \hline
+Goal & Retrieve explicit semantic facts from the graph & Learn latent numeric representations \\ \hline
+Output & Rows, counts, rates, ranked groups & Embedding vectors and model features \\ \hline
+Strength & Interpretability and provenance & Compactness and predictive utility \\ \hline
+Typical use & Academic exploration and validation & Downstream classification experiments \\ \hline
+\end{tabular}
+\caption{Difference between querying and embedding-based analysis}
+\label{tab:kge-compare}
+\end{table}
+
+This distinction matters in the report because it shows that the graph is doing two different jobs. First, it supports direct knowledge retrieval through SPARQL. Second, it serves as a representation-learning substrate for KGE, where the structural information of the RDF graph is transformed into features that a model can use.
 \end{document}
