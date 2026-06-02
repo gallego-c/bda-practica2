@@ -69,6 +69,7 @@ def main() -> None:
         ("Part4_Exploitation", PROJECT_ROOT / "Part4_Exploitation_zone" / "exploitation_pipeline.py", PROJECT_ROOT),
         ("Part5_KG_Analysis", PROJECT_ROOT / "Part5_Analysis_zone" / "kg_analysis_pipeline.py", PROJECT_ROOT),
         ("Part5_KG_Embedding_ML", PROJECT_ROOT / "Part5_Analysis_zone" / "kg_embedding_pipeline.py", PROJECT_ROOT),
+        ("Part5_Hybrid_ML", PROJECT_ROOT / "Part5_Analysis_zone" / "model_pipeline_hybrid.py", PROJECT_ROOT),
         ("Part5_Analysis", PROJECT_ROOT / "Part5_Analysis_zone" / "analysis_pipeline.py", PROJECT_ROOT),
         ("Part5_Model_Comparison", PROJECT_ROOT / "Part5_Analysis_zone" / "model_comparison_pipeline.py", PROJECT_ROOT),
     ])

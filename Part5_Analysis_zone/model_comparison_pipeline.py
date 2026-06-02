@@ -44,6 +44,7 @@ def main() -> None:
     core_report = safe_load(REPORTS_DIR / "integrated_core_report.json")
     enriched_report = safe_load(REPORTS_DIR / "integrated_enriched_report.json")
     kg_report = safe_load(REPORTS_DIR / "kg_embedding_report.json")
+    hybrid_report = safe_load(REPORTS_DIR / "hybrid_tabular_kg_report.json")
 
     pipelines = []
 
@@ -82,6 +83,19 @@ def main() -> None:
             "rows_test": kg_report.get("rows_test"),
             "metrics": extract_metrics(kg_report, metric_keys),
             "pykeen_training": kg_report.get("pykeen_training"),
+        })
+
+    # Hybrid: tabular + KG embeddings
+    if hybrid_report:
+        pipelines.append({
+            "pipeline": "hybrid_tabular_kg",
+            "description": "Tabular features enriched with KG node embeddings (population group + dataset + interaction)",
+            "feature_source": "tabular + KG embeddings (hybrid)",
+            "selected_model": hybrid_report.get("selected_model"),
+            "rows_train": hybrid_report.get("rows_train"),
+            "rows_test": hybrid_report.get("rows_test"),
+            "metrics": extract_metrics(hybrid_report, metric_keys),
+            "feature_composition": hybrid_report.get("feature_composition"),
         })
 
     if not pipelines:
