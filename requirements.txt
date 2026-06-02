@@ -5,6 +5,7 @@ pyarrow
 pandas
 duckdb
 rdflib
+owlrl  # optional: enable full RDFS reasoner with KG_USE_OWLRL=1 (manual closure used by default)
 numpy
 scikit-learn
 pykeen

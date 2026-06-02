@@ -50,6 +50,7 @@ ANALYTICS_QUERIES = [
 FULL_GRAPH_QUERIES = [
     "05_population_groups_connected_to_multiple_sources.rq",
     "08_top_risk_factor_cooccurrence.rq",
+    "09_observed_factors_via_rdfs_inference.rq",
 ]
 
 QUERY_DESCRIPTIONS = {
@@ -60,6 +61,7 @@ QUERY_DESCRIPTIONS = {
     "06_indicator_consistency_across_datasets.rq": "Indicator positive rates across datasets: min / max / avg / spread",
     "07_outcome_rate_by_age_group.rq": "Average outcome rate per age group and dataset",
     "08_top_risk_factor_cooccurrence.rq": "Risk-factor pairs most frequently co-occurring in positive heart-disease records",
+    "09_observed_factors_via_rdfs_inference.rq": "RDFS sub-property entailment: all observed (risk + protective) factors via the hasObservedFactor super-property",
 }
 
 
