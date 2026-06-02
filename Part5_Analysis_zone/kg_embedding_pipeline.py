@@ -1,3 +1,13 @@
+"""KG Embedding pipeline using PyKEEN (TransE, DistMult, ComplEx).
+
+Generates Knowledge Graph Embeddings from the RDF graph using standard KGE
+methods via the PyKEEN library. Falls back to TruncatedSVD if PyKEEN is
+unavailable or training fails.
+
+The embeddings are then used as features for a downstream heart-disease
+classification task, demonstrating the value of graph-derived representations.
+"""
+
 import json
 import logging
 import re
@@ -34,6 +44,18 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Try to import PyKEEN for proper KGE methods
+# ---------------------------------------------------------------------------
+PYKEEN_AVAILABLE = False
+try:
+    import torch
+    from pykeen.triples import TriplesFactory
+    from pykeen.pipeline import pipeline as pykeen_pipeline
+    PYKEEN_AVAILABLE = True
+    log.info("PyKEEN available — will use TransE/DistMult/ComplEx for KG embeddings.")
+except ImportError:
+    log.warning("PyKEEN not available — falling back to TruncatedSVD embeddings.")
 
 BASE_URI = "https://example.org/bda/health-risk/"
 HR = URIRef(BASE_URI)
@@ -42,8 +64,13 @@ KG_MANIFEST_PATH = KG_ROOT / "kg_manifest.json"
 DEFAULT_ANALYTICS_GRAPH_PATH = KG_ROOT / "health_risk_analytics_kg.ttl"
 OUTCOME_INDICATOR = URIRef(BASE_URI + "indicator/heart-disease-outcome")
 MIN_OBSERVATIONS_PER_SAMPLE = 25
-EMBEDDING_DIMENSIONS = 16
+EMBEDDING_DIMENSIONS = 32
 MAX_RECORD_SAMPLES = 60000
+
+# PyKEEN training configuration
+PYKEEN_MODELS = ["TransE", "DistMult", "ComplEx"]
+PYKEEN_EPOCHS = 100
+PYKEEN_EMBEDDING_DIM = 32
 
 RISK_FACTOR_COLUMNS = {
     "high_blood_pressure_flag": "high-blood-pressure",
@@ -192,7 +219,119 @@ def collect_embedding_edges(graph: Graph, held_out_nodes: set[URIRef]) -> list[t
     return edges
 
 
-def build_node_embeddings(edges: list[tuple[str, str]], dimensions: int) -> tuple[pd.DataFrame, dict[str, np.ndarray]]:
+def collect_triples_for_pykeen(graph: Graph, held_out_nodes: set[URIRef]) -> list[tuple[str, str, str]]:
+    """Extract (head, relation, tail) triples suitable for PyKEEN."""
+    triples = []
+    for subject, predicate, obj in graph:
+        if subject in held_out_nodes or obj in held_out_nodes:
+            continue
+        if not isinstance(subject, URIRef) or not isinstance(obj, URIRef):
+            continue
+        triples.append((str(subject), str(predicate), str(obj)))
+    return triples
+
+
+def train_pykeen_embeddings(
+    triples: list[tuple[str, str, str]], dimensions: int, model_name: str = "TransE"
+) -> tuple[dict[str, np.ndarray], dict[str, Any]]:
+    """Train a KGE model using PyKEEN and return entity embeddings."""
+    from pykeen.triples import TriplesFactory
+    from pykeen.pipeline import pipeline as pykeen_pipeline
+    import torch
+
+    log.info("Training PyKEEN model: %s (dim=%d, epochs=%d)", model_name, dimensions, PYKEEN_EPOCHS)
+
+    triples_array = np.array(triples, dtype=str)
+    tf = TriplesFactory.from_labeled_triples(triples_array)
+
+    # Train/test split for PyKEEN internal evaluation
+    training, testing = tf.split([0.9, 0.1], random_state=RANDOM_SEED)
+
+    result = pykeen_pipeline(
+        training=training,
+        testing=testing,
+        model=model_name,
+        model_kwargs={"embedding_dim": dimensions},
+        training_kwargs={"num_epochs": PYKEEN_EPOCHS, "batch_size": 256},
+        optimizer_kwargs={"lr": 0.01},
+        random_seed=RANDOM_SEED,
+        device="cpu",
+    )
+
+    # Extract entity embeddings
+    entity_representation = result.model.entity_representations[0]
+    entity_embeddings_tensor = entity_representation(
+        indices=torch.arange(tf.num_entities)
+    ).detach().numpy()
+
+    entity_to_id = tf.entity_to_id
+    embeddings: dict[str, np.ndarray] = {}
+    for entity_label, entity_id in entity_to_id.items():
+        embeddings[entity_label] = entity_embeddings_tensor[entity_id]
+
+    # Collect training metadata
+    training_info = {
+        "model": model_name,
+        "embedding_dim": dimensions,
+        "epochs": PYKEEN_EPOCHS,
+        "num_entities": tf.num_entities,
+        "num_relations": tf.num_relations,
+        "num_training_triples": training.num_triples,
+        "num_testing_triples": testing.num_triples,
+        "hits_at_10": float(result.metric_results.get_metric("hits@10") or 0.0),
+        "mean_rank": float(result.metric_results.get_metric("mean_rank") or 0.0),
+        "mrr": float(result.metric_results.get_metric("inverse_harmonic_mean_rank") or 0.0),
+    }
+    log.info(
+        "PyKEEN %s training done: entities=%d, relations=%d, MRR=%.4f, Hits@10=%.4f",
+        model_name, tf.num_entities, tf.num_relations,
+        training_info["mrr"], training_info["hits_at_10"],
+    )
+    return embeddings, training_info
+
+
+def train_best_pykeen_model(
+    triples: list[tuple[str, str, str]], dimensions: int
+) -> tuple[dict[str, np.ndarray], dict[str, Any]]:
+    """Try multiple PyKEEN models and keep the one with the best MRR."""
+    best_embeddings = None
+    best_info = None
+    best_mrr = -1.0
+
+    for model_name in PYKEEN_MODELS:
+        try:
+            embeddings, info = train_pykeen_embeddings(triples, dimensions, model_name)
+            mrr = info.get("mrr", 0.0)
+            if mrr > best_mrr:
+                best_mrr = mrr
+                best_embeddings = embeddings
+                best_info = info
+        except Exception as exc:
+            log.warning("PyKEEN model %s failed: %s — skipping", model_name, exc)
+
+    if best_embeddings is None:
+        raise RuntimeError("All PyKEEN models failed.")
+
+    log.info("Best KGE model: %s (MRR=%.4f)", best_info["model"], best_mrr)
+    return best_embeddings, best_info
+
+
+def build_node_embeddings_pykeen(
+    triples: list[tuple[str, str, str]], dimensions: int
+) -> tuple[pd.DataFrame, dict[str, np.ndarray], dict[str, Any]]:
+    """Build node embeddings using PyKEEN KGE models."""
+    embeddings, training_info = train_best_pykeen_model(triples, dimensions)
+
+    node_names = sorted(embeddings.keys())
+    columns = [f"kg_emb_{i:02d}" for i in range(dimensions)]
+    rows = [embeddings[node] for node in node_names]
+    frame = pd.DataFrame(rows, columns=columns)
+    frame.insert(0, "node", node_names)
+    return frame, embeddings, training_info
+
+
+def build_node_embeddings_svd(edges: list[tuple[str, str]], dimensions: int) -> tuple[pd.DataFrame, dict[str, np.ndarray]]:
+    """Fallback: build node embeddings using TruncatedSVD over adjacency matrix."""
     if not edges:
         raise ValueError("No RDF URI-to-URI edges were available for KG embedding generation.")
 
@@ -406,8 +545,29 @@ def main() -> None:
     log.info("Loaded analytics KG with %s triples", f"{len(graph):,}")
 
     held_out_outcome_nodes = outcome_measurement_nodes(graph)
-    edges = collect_embedding_edges(graph, held_out_outcome_nodes)
-    embeddings_frame, embeddings = build_node_embeddings(edges, EMBEDDING_DIMENSIONS)
+
+    # Try PyKEEN first, fall back to SVD
+    embedding_method = "svd_fallback"
+    pykeen_training_info: dict[str, Any] = {}
+
+    if PYKEEN_AVAILABLE:
+        try:
+            triples = collect_triples_for_pykeen(graph, held_out_outcome_nodes)
+            log.info("Collected %d triples for PyKEEN training", len(triples))
+            embeddings_frame, embeddings, pykeen_training_info = build_node_embeddings_pykeen(
+                triples, PYKEEN_EMBEDDING_DIM
+            )
+            embedding_method = f"pykeen_{pykeen_training_info['model']}"
+            log.info("KG embeddings generated via PyKEEN (%s)", pykeen_training_info["model"])
+        except Exception as exc:
+            log.warning("PyKEEN training failed (%s), falling back to SVD.", exc)
+            pass  # will fall through to SVD below
+    
+    if embedding_method == "svd_fallback":
+        edges = collect_embedding_edges(graph, held_out_outcome_nodes)
+        embeddings_frame, embeddings = build_node_embeddings_svd(edges, EMBEDDING_DIMENSIONS)
+        log.info("KG embeddings generated via TruncatedSVD (fallback).")
+
     risk_df = load_risk_model_input(EXPLOITATION_DUCKDB_PATH)
     samples = build_record_training_samples(risk_df, embeddings)
 
@@ -432,16 +592,22 @@ def main() -> None:
         "pipeline": "kg_embedding_pipeline",
         "run_at_utc": utc_now_iso(),
         "analytics_graph": str(graph_path),
-        "embedding_method": "TruncatedSVD over a typed RDF adjacency matrix",
+        "embedding_method": embedding_method,
+        "embedding_method_detail": (
+            f"PyKEEN {pykeen_training_info.get('model', '')} — a standard KG embedding method that learns "
+            "entity and relation representations by optimizing a scoring function over (h, r, t) triples."
+            if pykeen_training_info
+            else "TruncatedSVD over normalized adjacency matrix (fallback when PyKEEN unavailable)."
+        ),
+        "pykeen_training": pykeen_training_info if pykeen_training_info else None,
         "leakage_control": "Outcome aggregate measurement nodes are held out while node embeddings are generated.",
         "prediction_task": "Classify record-level heart-disease outcomes using only KG-derived node embeddings and graph indicator context.",
-        "embedding_dimensions_per_node": EMBEDDING_DIMENSIONS,
+        "embedding_dimensions_per_node": PYKEEN_EMBEDDING_DIM if pykeen_training_info else EMBEDDING_DIMENSIONS,
         "feature_construction": "dataset embedding + population-group embedding + observed/risk/protective indicator embeddings + graph interactions",
         "max_record_samples": MAX_RECORD_SAMPLES,
         "graph": {
             "triples": int(len(graph)),
             "held_out_outcome_measurements": int(len(held_out_outcome_nodes)),
-            "embedding_edges": int(len(edges)),
             "embedded_nodes": int(len(embeddings_frame)),
         },
         "samples": {

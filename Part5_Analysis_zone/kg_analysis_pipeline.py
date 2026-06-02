@@ -117,6 +117,11 @@ def resolve_sparql_dir(path_text: str) -> Path:
     if fallback.exists():
         return fallback
 
+    # Also check the versioned queries committed to the repo
+    versioned = PROJECT_ROOT / "Part4_Exploitation_zone" / "sparql_queries"
+    if versioned.exists():
+        return versioned
+
     return path
 
 
