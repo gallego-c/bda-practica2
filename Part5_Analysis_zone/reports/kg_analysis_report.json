@@ -1,9 +1,9 @@
 {
   "pipeline": "kg_analysis_pipeline",
   "run_at_utc": "2026-06-03T13:07:36+00:00",
-  "kg_manifest": "/home/stargix/Desktop/uni/BDA/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json",
-  "analytics_graph": "/home/stargix/Desktop/uni/BDA/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.nt",
-  "full_graph": "/home/stargix/Desktop/uni/BDA/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.nt",
+  "kg_manifest": "Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json",
+  "analytics_graph": "Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.nt",
+  "full_graph": "Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.nt",
   "analytics_triple_count": 6374,
   "full_triple_count": 5329569,
   "graph_structure": {

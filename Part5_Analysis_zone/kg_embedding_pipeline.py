@@ -58,6 +58,15 @@ except ImportError:
     log.warning("PyKEEN not available — falling back to TruncatedSVD embeddings.")
 
 BASE_URI = "https://example.org/bda/health-risk/"
+
+
+def _rel(path: Path) -> str:
+    """Return a project-relative POSIX path for portable JSON output."""
+    try:
+        return path.resolve().relative_to(PROJECT_ROOT.resolve()).as_posix()
+    except ValueError:
+        return path.as_posix()
+
 HR = URIRef(BASE_URI)
 KG_ROOT = PROJECT_ROOT / "Part4_Exploitation_zone" / "exploitation_zone" / "kg"
 KG_MANIFEST_PATH = KG_ROOT / "kg_manifest.json"
@@ -180,6 +189,10 @@ def resolve_analytics_graph_path(manifest: dict) -> Path:
     manifest_path = Path(manifest["storage"]["analytics_graph_file"])
     if manifest_path.exists():
         return manifest_path
+    # Try resolving as a project-relative path
+    project_relative = PROJECT_ROOT / manifest["storage"]["analytics_graph_file"]
+    if project_relative.exists():
+        return project_relative
     if DEFAULT_ANALYTICS_GRAPH_PATH.exists():
         return DEFAULT_ANALYTICS_GRAPH_PATH
     raise FileNotFoundError(
@@ -591,7 +604,7 @@ def main() -> None:
     report = {
         "pipeline": "kg_embedding_pipeline",
         "run_at_utc": utc_now_iso(),
-        "analytics_graph": str(graph_path),
+        "analytics_graph": _rel(graph_path),
         "embedding_method": embedding_method,
         "embedding_method_detail": (
             f"PyKEEN {pykeen_training_info.get('model', '')} — a standard KG embedding method that learns "
@@ -620,9 +633,9 @@ def main() -> None:
         "selected_model": best_name,
         **evaluation,
         "artifacts": {
-            "model": str(MODELS_DIR / "kg_embedding_model.pkl"),
-            "node_embeddings": str(embeddings_path),
-            "training_sample_audit": str(samples_path),
+            "model": _rel(MODELS_DIR / "kg_embedding_model.pkl"),
+            "node_embeddings": _rel(embeddings_path),
+            "training_sample_audit": _rel(samples_path),
         },
     }
     save_json(REPORTS_DIR / "kg_embedding_report.json", report)

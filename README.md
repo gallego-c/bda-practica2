@@ -9,6 +9,9 @@ cross-dataset analysis, and runs two analytical pipelines on top of it:
 2. **ML over KG embeddings**: graph-derived features feed a record-level
    classifier of the heart-disease outcome.
 
+> [!TIP]
+> **Explore the graph structure visually:** open [`kg_schema_visualization.html`](kg_schema_visualization.html) in your browser.
+
 ## Quick Start
 
 ### Prerequisites

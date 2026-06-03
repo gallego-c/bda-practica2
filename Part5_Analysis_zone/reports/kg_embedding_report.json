@@ -1,9 +1,9 @@
 {
   "pipeline": "kg_embedding_pipeline",
   "run_at_utc": "2026-06-03T13:22:27+00:00",
-  "analytics_graph": "/home/stargix/Desktop/uni/BDA/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.nt",
+  "analytics_graph": "Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.nt",
   "embedding_method": "pykeen_DistMult",
-  "embedding_method_detail": "PyKEEN DistMult — a standard KG embedding method that learns entity and relation representations by optimizing a scoring function over (h, r, t) triples.",
+  "embedding_method_detail": "PyKEEN DistMult \u2014 a standard KG embedding method that learns entity and relation representations by optimizing a scoring function over (h, r, t) triples.",
   "pykeen_training": {
     "model": "DistMult",
     "embedding_dim": 32,
@@ -71,8 +71,8 @@
     ]
   },
   "artifacts": {
-    "model": "/home/stargix/Desktop/uni/BDA/bda-practica2/Part5_Analysis_zone/models/kg_embedding_model.pkl",
-    "node_embeddings": "/home/stargix/Desktop/uni/BDA/bda-practica2/Part5_Analysis_zone/reports/kg_node_embeddings.csv",
-    "training_sample_audit": "/home/stargix/Desktop/uni/BDA/bda-practica2/Part5_Analysis_zone/reports/kg_embedding_training_data.csv"
+    "model": "Part5_Analysis_zone/models/kg_embedding_model.pkl",
+    "node_embeddings": "Part5_Analysis_zone/reports/kg_node_embeddings.csv",
+    "training_sample_audit": "Part5_Analysis_zone/reports/kg_embedding_training_data.csv"
   }
 }
