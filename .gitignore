@@ -15,8 +15,6 @@ Part3_Trusted_zone/_staging/
 Part4_Exploitation_zone/exploitation_zone/
 Part4_Exploitation_zone/_staging/
 Part5_Analysis_zone/models/
-Part5_Analysis_zone/figures/
-Part5_Analysis_zone/reports/
 
 pycache__/
 __pycache__/
