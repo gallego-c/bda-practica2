@@ -68,7 +68,7 @@ TABULAR_BINARY = [
     "exercise_induced_angina",
 ]
 
-MAX_SAMPLES = 60000
+MAX_SAMPLES = 30000
 
 
 def slug(value, fallback="unknown") -> str:
