@@ -1,0 +1,78 @@
+{
+  "pipeline": "kg_embedding_pipeline",
+  "run_at_utc": "2026-06-03T13:22:27+00:00",
+  "analytics_graph": "Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.nt",
+  "embedding_method": "pykeen_DistMult",
+  "embedding_method_detail": "PyKEEN DistMult \u2014 a standard KG embedding method that learns entity and relation representations by optimizing a scoring function over (h, r, t) triples.",
+  "pykeen_training": {
+    "model": "DistMult",
+    "embedding_dim": 32,
+    "epochs": 30,
+    "num_entities": 698,
+    "num_relations": 13,
+    "num_training_triples": 3472,
+    "num_testing_triples": 386,
+    "hits_at_10": 0.716321243523316,
+    "mean_rank": 38.38471603393555,
+    "mrr": 0.5929925441741943
+  },
+  "leakage_control": "Outcome aggregate measurement nodes are held out while node embeddings are generated.",
+  "prediction_task": "Classify record-level heart-disease outcomes using only KG-derived node embeddings and graph indicator context.",
+  "embedding_dimensions_per_node": 32,
+  "feature_construction": "dataset embedding + population-group embedding + observed/risk/protective indicator embeddings + graph interactions",
+  "max_record_samples": 30000,
+  "graph": {
+    "triples": 6374,
+    "held_out_outcome_measurements": 62,
+    "embedded_nodes": 698
+  },
+  "samples": {
+    "rows_total": 30000,
+    "positive_labels": 5391,
+    "negative_labels": 24609,
+    "source_distribution": {
+      "heart_disease_health_indicators": 23592,
+      "cardiovascular_disease": 6380,
+      "heart_disease_cleveland": 28
+    }
+  },
+  "candidate_models": {
+    "logreg_embedding": {
+      "cv_pr_auc_mean": 0.5645828700862924,
+      "cv_pr_auc_std": 0.007899337681736748,
+      "cv_folds": 3
+    },
+    "rf_embedding": {
+      "cv_pr_auc_mean": 0.5667156770908671,
+      "cv_pr_auc_std": 0.00434296047848133,
+      "cv_folds": 3
+    }
+  },
+  "selected_model": "rf_embedding",
+  "rows_train": 24000,
+  "rows_test": 6000,
+  "decision_threshold": 0.6469542472881032,
+  "test_metrics": {
+    "accuracy": 0.8211666666666667,
+    "precision": 0.5017253278122843,
+    "recall": 0.6743970315398887,
+    "f1": 0.5753858330035615,
+    "roc_auc": 0.8567156924459415,
+    "pr_auc": 0.5589709393082563,
+    "confusion_matrix": [
+      [
+        4200,
+        722
+      ],
+      [
+        351,
+        727
+      ]
+    ]
+  },
+  "artifacts": {
+    "model": "Part5_Analysis_zone/models/kg_embedding_model.pkl",
+    "node_embeddings": "Part5_Analysis_zone/reports/kg_node_embeddings.csv",
+    "training_sample_audit": "Part5_Analysis_zone/reports/kg_embedding_training_data.csv"
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "comparison": "tabular_vs_kg_embedding",
+  "run_at_utc": "2026-06-03T13:24:58+00:00",
+  "purpose": "Direct comparison between traditional tabular ML pipelines and KG embedding-based classification to evaluate the added value of graph-derived semantic features for heart-disease prediction.",
+  "pipelines": [
+    {
+      "pipeline": "tabular_core",
+      "description": "Logistic Regression / Random Forest on core tabular features (age, BMI, BP, flags)",
+      "feature_source": "tabular (direct columns from trusted zone)",
+      "selected_model": "rf_balanced",
+      "rows_train": 258069,
+      "rows_test": 64518,
+      "metrics": {
+        "accuracy": 0.7934374903127809,
+        "precision": 0.44352473440656975,
+        "recall": 0.5869415214766258,
+        "f1": 0.5052529977354568,
+        "roc_auc": 0.8174601747948018,
+        "pr_auc": 0.49396610716836764
+      }
+    },
+    {
+      "pipeline": "tabular_enriched",
+      "description": "Logistic Regression / Random Forest on all available tabular features including engineered ones",
+      "feature_source": "tabular (all columns + feature engineering)",
+      "selected_model": "rf_balanced",
+      "rows_train": 258069,
+      "rows_test": 64518,
+      "metrics": {
+        "accuracy": 0.8400291391549645,
+        "precision": 0.5492532693646986,
+        "recall": 0.6122132137312403,
+        "f1": 0.5790267977321858,
+        "roc_auc": 0.8692873808507202,
+        "pr_auc": 0.6248154743020283
+      }
+    },
+    {
+      "pipeline": "kg_embedding",
+      "description": "Classifier trained exclusively on KG-derived node embeddings (entity + relation structure)",
+      "feature_source": "KG embeddings (pykeen_DistMult)",
+      "selected_model": "rf_embedding",
+      "rows_train": 24000,
+      "rows_test": 6000,
+      "metrics": {
+        "accuracy": 0.8211666666666667,
+        "precision": 0.5017253278122843,
+        "recall": 0.6743970315398887,
+        "f1": 0.5753858330035615,
+        "roc_auc": 0.8567156924459415,
+        "pr_auc": 0.5589709393082563
+      },
+      "pykeen_training": {
+        "model": "DistMult",
+        "embedding_dim": 32,
+        "epochs": 30,
+        "num_entities": 698,
+        "num_relations": 13,
+        "num_training_triples": 3472,
+        "num_testing_triples": 386,
+        "hits_at_10": 0.716321243523316,
+        "mean_rank": 38.38471603393555,
+        "mrr": 0.5929925441741943
+      }
+    },
+    {
+      "pipeline": "hybrid_tabular_kg",
+      "description": "Tabular features enriched with KG node embeddings (population group + dataset + interaction)",
+      "feature_source": "tabular + KG embeddings (hybrid)",
+      "selected_model": "logreg_hybrid",
+      "rows_train": 24000,
+      "rows_test": 6000,
+      "metrics": {
+        "accuracy": 0.8468333333333333,
+        "precision": 0.5730027548209367,
+        "recall": 0.5788497217068646,
+        "f1": 0.5759113982464237,
+        "roc_auc": 0.8717674761530337,
+        "pr_auc": 0.6236139488859658
+      },
+      "feature_composition": {
+        "tabular_features": 16,
+        "kg_embedding_features": 96,
+        "total_features": 112
+      }
+    }
+  ],
+  "comparison_table": [
+    {
+      "pipeline": "tabular_core",
+      "model": "rf_balanced",
+      "feature_source": "tabular (direct columns from trusted zone)",
+      "accuracy": 0.7934374903127809,
+      "precision": 0.44352473440656975,
+      "recall": 0.5869415214766258,
+      "f1": 0.5052529977354568,
+      "roc_auc": 0.8174601747948018,
+      "pr_auc": 0.49396610716836764
+    },
+    {
+      "pipeline": "tabular_enriched",
+      "model": "rf_balanced",
+      "feature_source": "tabular (all columns + feature engineering)",
+      "accuracy": 0.8400291391549645,
+      "precision": 0.5492532693646986,
+      "recall": 0.6122132137312403,
+      "f1": 0.5790267977321858,
+      "roc_auc": 0.8692873808507202,
+      "pr_auc": 0.6248154743020283
+    },
+    {
+      "pipeline": "kg_embedding",
+      "model": "rf_embedding",
+      "feature_source": "KG embeddings (pykeen_DistMult)",
+      "accuracy": 0.8211666666666667,
+      "precision": 0.5017253278122843,
+      "recall": 0.6743970315398887,
+      "f1": 0.5753858330035615,
+      "roc_auc": 0.8567156924459415,
+      "pr_auc": 0.5589709393082563
+    },
+    {
+      "pipeline": "hybrid_tabular_kg",
+      "model": "logreg_hybrid",
+      "feature_source": "tabular + KG embeddings (hybrid)",
+      "accuracy": 0.8468333333333333,
+      "precision": 0.5730027548209367,
+      "recall": 0.5788497217068646,
+      "f1": 0.5759113982464237,
+      "roc_auc": 0.8717674761530337,
+      "pr_auc": 0.6236139488859658
+    }
+  ],
+  "best_per_metric": {
+    "accuracy": {
+      "best_pipeline": "hybrid_tabular_kg",
+      "value": 0.8468333333333333
+    },
+    "precision": {
+      "best_pipeline": "hybrid_tabular_kg",
+      "value": 0.5730027548209367
+    },
+    "recall": {
+      "best_pipeline": "kg_embedding",
+      "value": 0.6743970315398887
+    },
+    "f1": {
+      "best_pipeline": "tabular_enriched",
+      "value": 0.5790267977321858
+    },
+    "roc_auc": {
+      "best_pipeline": "hybrid_tabular_kg",
+      "value": 0.8717674761530337
+    },
+    "pr_auc": {
+      "best_pipeline": "tabular_enriched",
+      "value": 0.6248154743020283
+    }
+  },
+  "kg_vs_best_tabular": {
+    "accuracy": {
+      "kg_value": 0.8212,
+      "tabular_value": 0.84,
+      "delta": -0.0189,
+      "kg_wins": false
+    },
+    "precision": {
+      "kg_value": 0.5017,
+      "tabular_value": 0.5493,
+      "delta": -0.0475,
+      "kg_wins": false
+    },
+    "recall": {
+      "kg_value": 0.6744,
+      "tabular_value": 0.6122,
+      "delta": 0.0622,
+      "kg_wins": true
+    },
+    "f1": {
+      "kg_value": 0.5754,
+      "tabular_value": 0.579,
+      "delta": -0.0036,
+      "kg_wins": false
+    },
+    "roc_auc": {
+      "kg_value": 0.8567,
+      "tabular_value": 0.8693,
+      "delta": -0.0126,
+      "kg_wins": false
+    },
+    "pr_auc": {
+      "kg_value": 0.559,
+      "tabular_value": 0.6248,
+      "delta": -0.0658,
+      "kg_wins": false
+    }
+  },
+  "interpretation": "The KG embeddings capture relational context (dataset provenance, population group membership, indicator co-occurrence) that is not directly available in flat tabular features. A positive delta means the KG-based model outperforms the tabular baseline on that metric. Even when deltas are small or negative, the KG approach demonstrates that semantic structure alone can achieve competitive predictive performance."
+}

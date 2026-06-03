@@ -21,7 +21,7 @@ The goal of this project is to continue building a complete end-to-end data scie
 
 \section{Previous work}
 
-In previous project, we cfreated a 5 stage pipeline integrating 3 different datasets. They were from the heathcare domain, focusing on cardiovascular diseases. The first dataset, \textit{Cardiovascular Heart Diseases}, The \textit{Heart Disease Health Indicators} from BRFSS and he \textit{Cleveland Heart Disease dataset}. Our goal was to evaluate the risk of developing such diseases based on both medical and behavioral factors.\\
+In the previous project, we created a 5-stage pipeline integrating 3 different datasets. They were from the healthcare domain, focusing on cardiovascular diseases: the \textit{Cardiovascular Disease} dataset, the \textit{Heart Disease Health Indicators} dataset from BRFSS, and the \textit{Cleveland Heart Disease} dataset. Our goal was to evaluate the risk of developing such diseases based on both medical and behavioral factors.\\
 
 The architecture as mentioned was divided in 5 stages. The first Zone was the Landing Zone. It ingests three configured Kaggle datasets and stores each extraction as a timestamped raw Parquet snapshot. Keeping ingestion separate from downstream transformations and serves as a stable reference point.\\
 
@@ -41,14 +41,16 @@ The report therefore emphasizes two graph-oriented tasks: SPARQL exploration of 
 \section{Project improvements}
 The key improvement is the inclusion of a knowledge graph layer built from the trusted and exploited health data. Instead of treating the final table as the only analytical artifact, the project now also exposes the data through RDF, which makes the relationships between records, shared indicators, and population groups explicit.
 
-Another improvement is the formalization of the RDF schema. We created classes such as HealthRecord, Dataset, PopulationGroup, AgeGroup, Gender, Indicator, Outcome, and AggregateMeasurement, and connected them with object and data properties so the graph can be queried in a structured and academically reusable way.
+Another improvement is the formalization of the RDF schema. We created classes such as HealthRecord, Dataset, PopulationGroup, AgeGroup, Gender, Indicator, Outcome, and AggregateMeasurement, and connected them with object and data properties so the graph can be queried in a structured and academically reusable way. Beyond a flat RDF schema, these classes are organized into a real RDFS taxonomy using \texttt{rdfs:subClassOf} (under abstract super-classes Concept, DemographicConcept, HealthConcept, and Observation) and \texttt{rdfs:subPropertyOf} (grouping the individual factor relations under a shared super-property). This enables type-level and property-level entailment through RDFS reasoning.
 
-Finally, the analytical focus shifts toward graph-based experimentation. The SPARQL layer supports semantic querying of the graph, while the KGE stage transforms that same graph into vector representations that can be used in predictive tasks, giving the report a stronger emphasis on knowledge extraction rather than only tabular inference.
+Finally, the analytical focus shifts toward graph-based experimentation. The SPARQL layer supports semantic querying of the graph, while the KGE stage transforms that same graph into vector representations that can be used in predictive tasks, giving the report a stronger emphasis on knowledge extraction rather than only tabular inference. We additionally train a hybrid model that combines tabular clinical features with KG embeddings, and a comparison stage that quantifies the added value of the graph-derived features against purely tabular baselines.
 
 \section{Knowledge graphs}
 The knowledge graph was built to represent the integrated cardiovascular data in a semantic model that is more expressive than a flat table. Each trusted record becomes a HealthRecord instance, the source datasets are modeled as Dataset nodes, and the shared conceptual layers are represented through PopulationGroup, AgeGroup, Gender, Indicator, and Outcome classes.
 
 The RDF schema was designed for academic clarity and reusability. Object properties such as fromDataset, belongsToAgeGroup, hasGender, belongsToPopulationGroup, hasObservedRiskFactor, and hasOutcome connect records to their context, while data properties store metadata such as run identifiers, indicator labels, aggregate values, and observation counts. This makes the graph suitable for provenance-aware analysis and for demonstrating how heterogeneous datasets can be aligned under a common vocabulary.
+
+To make the schema a genuine RDFS taxonomy rather than a flat list of classes, the concrete classes are arranged under abstract super-classes through \texttt{rdfs:subClassOf}: demographic classes (AgeGroup, Gender, PopulationGroup) and health classes (Indicator, Outcome) descend from a common Concept hierarchy, while HealthRecord and AggregateMeasurement are both kinds of Observation. Similarly, the specific factor predicates (hasObservedRiskFactor, hasProtectiveFactor, hasObservedFactor) are grouped under a shared super-property via \texttt{rdfs:subPropertyOf}. We then materialize the RDFS entailment (closure under the \texttt{rdfs7} and \texttt{rdfs9} rules) so that, for example, every AgeGroup instance is also inferred to be a Concept, and any specific factor assertion is also retrievable through the general super-property. One of the SPARQL queries explicitly relies on this sub-property inference to demonstrate the value of reasoning.
 
 Table~\ref{tab:kg-schema} summarizes the central schema components, while Table~\ref{tab:kg-example} shows the kind of record-level and aggregate nodes that are generated from the trusted data.
 
@@ -139,9 +141,9 @@ Which records belong to a female age-9 group? & Concrete \texttt{HealthRecord} i
 \end{table}
 
 \section{KGE-based analysis}
-The KGE-based analysis uses the knowledge graph as a source of structured features. Graph entities and relations are transformed into embeddings, and those embeddings are then used as inputs for predictive models. In this way, the graph is not only a descriptive layer, but also a representation learning layer.
+The KGE-based analysis uses the knowledge graph as a source of structured features. Graph entities and relations are transformed into embeddings using standard Knowledge Graph Embedding methods, and those embeddings are then used as inputs for predictive models. In this way, the graph is not only a descriptive layer, but also a representation learning layer.
 
-This stage complements the SPARQL exploration because it turns semantic structure into numerical vectors that can support downstream prediction. The important point is that the graph captures context that is not available in the tabular form alone, so the embedding-based analysis can exploit relationships between datasets, population groups, and indicators while remaining compatible with standard machine learning workflows.
+This stage complements the SPARQL exploration because it turns semantic structure into numerical vectors that can support downstream prediction. The embeddings are learned with the PyKEEN library, training canonical translational and bilinear models (TransE, DistMult, and ComplEx) over the RDF triples and selecting the best model by Mean Reciprocal Rank (MRR); a TruncatedSVD factorization of the typed adjacency is kept as a fallback. The important point is that the graph captures context that is not available in the tabular form alone, so the embedding-based analysis can exploit relationships between datasets, population groups, and indicators while remaining compatible with standard machine learning workflows.
 
 Table~\ref{tab:kge-pipeline} shows the main steps followed by the KGE pipeline and the type of representation each step produces.
 
@@ -151,8 +153,8 @@ Table~\ref{tab:kge-pipeline} shows the main steps followed by the KGE pipeline a
 \hline
 \textbf{Step} & \textbf{What it does} & \textbf{Output} \\ \hline
 Graph loading & Reads the RDF analytics graph and schema & RDF graph object \\ \hline
-Edge construction & Converts triples into URI-to-URI relationships & Graph edge list \\ \hline
-Embedding learning & Applies matrix-based representation learning & Node embedding vectors \\ \hline
+Edge construction & Converts triples into (head, relation, tail) facts & PyKEEN triples factory \\ \hline
+Embedding learning & Trains TransE / DistMult / ComplEx and selects by MRR & Entity and relation embedding vectors \\ \hline
 Record feature assembly & Combines dataset, population-group, and indicator vectors & Model-ready feature matrix \\ \hline
 Predictive modeling & Trains a classifier on embedding features & KGE-based report and model \\ \hline
 \end{tabular}
@@ -179,4 +181,9 @@ Typical use & Academic exploration and validation & Downstream classification ex
 \end{table}
 
 This distinction matters in the report because it shows that the graph is doing two different jobs. First, it supports direct knowledge retrieval through SPARQL. Second, it serves as a representation-learning substrate for KGE, where the structural information of the RDF graph is transformed into features that a model can use.
+
+\section{Hybrid modeling and comparison}
+To assess whether the knowledge graph contributes signal beyond traditional tabular machine learning, we train a hybrid model that concatenates the best tabular clinical features with the KG node embeddings, and we compare four pipelines on the same outcome: a tabular core baseline, a tabular enriched baseline, a KG-embedding-only model, and the hybrid model. A dedicated comparison stage collects the test-set metrics (accuracy, precision, recall, F1, ROC-AUC, and PR-AUC) of every pipeline into a single report.
+
+The results confirm two findings. First, the KG-embedding-only model reaches performance comparable to the tabular baselines while relying exclusively on graph-derived features, which validates that the graph encodes meaningful disease structure. Second, the hybrid model combines both feature spaces, and the difference with respect to the tabular baseline quantifies the complementary value of the relational context captured by the graph. This empirical comparison is the final piece of evidence that the knowledge graph is not only a descriptive artifact but also a useful source of predictive features.
 \end{document}

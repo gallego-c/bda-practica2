@@ -1,11 +1,11 @@
 {
   "pipeline": "kg_analysis_pipeline",
-  "run_at_utc": "2026-06-01T15:43:56+00:00",
-  "kg_manifest": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json",
-  "analytics_graph": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.ttl",
-  "full_graph": "/mnt/c/Users/Paess/Documents/GitHub/bda-practica2/Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.ttl",
-  "analytics_triple_count": 5573,
-  "full_triple_count": 3635316,
+  "run_at_utc": "2026-06-03T13:07:36+00:00",
+  "kg_manifest": "Part4_Exploitation_zone/exploitation_zone/kg/kg_manifest.json",
+  "analytics_graph": "Part4_Exploitation_zone/exploitation_zone/kg/health_risk_analytics_kg.nt",
+  "full_graph": "Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.nt",
+  "analytics_triple_count": 6374,
+  "full_triple_count": 5329569,
   "graph_structure": {
     "datasets": 3,
     "indicators": 17,
@@ -217,18 +217,18 @@
           "highCholesterolRate": 1.0
         },
         {
-          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-male",
-          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
-          "heartDiseaseRate": 0.75,
-          "highBpRate": 1.0,
-          "highCholesterolRate": 0.75
-        },
-        {
           "populationGroup": "https://example.org/bda/health-risk/population-group/age-9/gender-male",
           "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
           "heartDiseaseRate": 0.75,
           "highBpRate": 0.642857,
           "highCholesterolRate": 0.892857
+        },
+        {
+          "populationGroup": "https://example.org/bda/health-risk/population-group/age-11/gender-male",
+          "dataset": "https://example.org/bda/health-risk/dataset/heart-disease-cleveland",
+          "heartDiseaseRate": 0.75,
+          "highBpRate": 1.0,
+          "highCholesterolRate": 0.75
         },
         {
           "populationGroup": "https://example.org/bda/health-risk/population-group/age-10/gender-male",
@@ -580,42 +580,42 @@
           "datasets": 3,
           "minRate": 0.0,
           "maxRate": 1.0,
-          "avgRate": 0.5018582741935486
+          "avgRate": 0.5018582741935484
         },
         {
           "indicatorLabel": "High cholesterol flag",
           "datasets": 3,
           "minRate": 0.0,
           "maxRate": 1.0,
-          "avgRate": 0.45613187096774194
+          "avgRate": 0.45613187096774205
         },
         {
           "indicatorLabel": "Smoking flag",
           "datasets": 2,
           "minRate": 0.0,
           "maxRate": 0.6274,
-          "avgRate": 0.30295475609756095
+          "avgRate": 0.3029547560975609
         },
         {
           "indicatorLabel": "Physical activity flag",
           "datasets": 2,
           "minRate": 0.63315,
           "maxRate": 1.0,
-          "avgRate": 0.7983188292682928
+          "avgRate": 0.7983188292682927
         },
         {
           "indicatorLabel": "Glucose risk flag",
           "datasets": 2,
           "minRate": 0.0,
           "maxRate": 0.263158,
-          "avgRate": 0.09969855555555555
+          "avgRate": 0.09969855555555553
         },
         {
           "indicatorLabel": "Heavy alcohol consumption flag",
           "datasets": 2,
           "minRate": 0.0,
           "maxRate": 0.131994,
-          "avgRate": 0.0565079024390244
+          "avgRate": 0.05650790243902437
         }
       ],
       "row_cap_applied": false
@@ -1030,6 +1030,55 @@
           "indicator1Label": "Exercise-induced angina flag",
           "indicator2Label": "Glucose risk flag",
           "coOccurringRecords": 12
+        }
+      ],
+      "row_cap_applied": false
+    },
+    {
+      "query": "09_observed_factors_via_rdfs_inference.rq",
+      "description": "RDFS sub-property entailment: all observed (risk + protective) factors via the hasObservedFactor super-property",
+      "graph": "full",
+      "rows_returned": 8,
+      "rows": [
+        {
+          "factorLabel": "High blood pressure flag",
+          "factorCategory": "risk-factor",
+          "recordCount": 48833
+        },
+        {
+          "factorLabel": "Physical activity flag",
+          "factorCategory": "behavior",
+          "recordCount": 42052
+        },
+        {
+          "factorLabel": "High cholesterol flag",
+          "factorCategory": "risk-factor",
+          "recordCount": 28410
+        },
+        {
+          "factorLabel": "Smoking flag",
+          "factorCategory": "behavior",
+          "recordCount": 17628
+        },
+        {
+          "factorLabel": "Difficulty walking flag",
+          "factorCategory": "functional-health",
+          "recordCount": 9915
+        },
+        {
+          "factorLabel": "Glucose risk flag",
+          "factorCategory": "risk-factor",
+          "recordCount": 6221
+        },
+        {
+          "factorLabel": "Heavy alcohol consumption flag",
+          "factorCategory": "behavior",
+          "recordCount": 2593
+        },
+        {
+          "factorLabel": "Exercise-induced angina flag",
+          "factorCategory": "clinical",
+          "recordCount": 74
         }
       ],
       "row_cap_applied": false

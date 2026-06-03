@@ -22,8 +22,15 @@ from pathlib import Path
 from typing import Any
 
 from rdflib import Graph
-
 from analysis_config import PROJECT_ROOT, REPORTS_DIR
+
+
+def _rel(path: Path) -> str:
+    """Return a project-relative POSIX path for portable JSON output."""
+    try:
+        return path.resolve().relative_to(PROJECT_ROOT.resolve()).as_posix()
+    except ValueError:
+        return path.as_posix()
 
 
 logging.basicConfig(
@@ -50,6 +57,7 @@ ANALYTICS_QUERIES = [
 FULL_GRAPH_QUERIES = [
     "05_population_groups_connected_to_multiple_sources.rq",
     "08_top_risk_factor_cooccurrence.rq",
+    "09_observed_factors_via_rdfs_inference.rq",
 ]
 
 QUERY_DESCRIPTIONS = {
@@ -60,6 +68,7 @@ QUERY_DESCRIPTIONS = {
     "06_indicator_consistency_across_datasets.rq": "Indicator positive rates across datasets: min / max / avg / spread",
     "07_outcome_rate_by_age_group.rq": "Average outcome rate per age group and dataset",
     "08_top_risk_factor_cooccurrence.rq": "Risk-factor pairs most frequently co-occurring in positive heart-disease records",
+    "09_observed_factors_via_rdfs_inference.rq": "RDFS sub-property entailment: all observed (risk + protective) factors via the hasObservedFactor super-property",
 }
 
 
@@ -101,6 +110,11 @@ def resolve_kg_path(path_text: str, fallback_dir: Path) -> Path:
     if path.exists():
         return path
 
+    # Try resolving as a project-relative path
+    project_relative = PROJECT_ROOT / path_text
+    if project_relative.exists():
+        return project_relative
+
     fallback = fallback_dir / path.name
     if fallback.exists():
         return fallback
@@ -113,9 +127,19 @@ def resolve_sparql_dir(path_text: str) -> Path:
     if path.exists():
         return path
 
+    # Try resolving as a project-relative path
+    project_relative = PROJECT_ROOT / path_text
+    if project_relative.exists():
+        return project_relative
+
     fallback = KG_ROOT / "sparql"
     if fallback.exists():
         return fallback
+
+    # Also check the versioned queries committed to the repo
+    versioned = PROJECT_ROOT / "Part4_Exploitation_zone" / "sparql_queries"
+    if versioned.exists():
+        return versioned
 
     return path
 
@@ -193,9 +217,9 @@ def main() -> None:
     report = {
         "pipeline": "kg_analysis_pipeline",
         "run_at_utc": utc_now_iso(),
-        "kg_manifest": str(KG_MANIFEST_PATH),
-        "analytics_graph": str(analytics_path),
-        "full_graph": str(full_path),
+        "kg_manifest": _rel(KG_MANIFEST_PATH),
+        "analytics_graph": _rel(analytics_path),
+        "full_graph": _rel(full_path),
         "analytics_triple_count": len(analytics_graph),
         "full_triple_count": len(full_graph),
         "graph_structure": structure,

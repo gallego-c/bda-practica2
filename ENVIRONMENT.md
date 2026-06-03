@@ -1,15 +1,20 @@
 # Environment Setup
 
-Choose the setup instructions for your operating system.
+This document explains how to prepare a working environment for the project on
+Linux/WSL and Windows. Follow the section that matches your operating system.
 
-## ⚙️ System Requirements
+## System Requirements
 
-- **Python:** 3.11 or 3.12
-- **Java:** 17 (required for Spark; **do not use Java 25**)
-- **PySpark:** 3.5.0
-- **Kaggle credentials:** Only needed if downloading new datasets
+- **Python:** 3.11 or 3.12. Newer versions (3.13+) are not yet fully supported
+  by some dependencies (PyKEEN, PySpark), so stick to 3.11/3.12.
+- **Java:** 17. This is required by Spark 3.5. Do not use Java 25, as it is
+  incompatible and Spark will fail to start.
+- **PySpark:** 3.5.0 (installed automatically from `requirements.txt`).
+- **Kaggle credentials:** Only needed if you want to re-download the raw
+  datasets through the Landing Zone. The pipeline can run end-to-end from the
+  committed snapshots with `--skip-landing`.
 
-## 🐧 Linux / WSL Setup
+## Linux / WSL Setup
 
 ### 1. Install System Dependencies
 
@@ -43,13 +48,16 @@ To force a specific Python version:
 PYTHON_BIN=python3.12 ./scripts/setup_env.sh
 ```
 
+The setup script creates a virtual environment in `.venv`, upgrades `pip`, and
+installs every dependency listed in `requirements.txt`.
+
 ### 3. Activate Environment
 
 ```bash
 source .venv/bin/activate
 ```
 
-## 🪟 Windows Setup
+## Windows Setup
 
 ### 1. Run PowerShell Setup Script
 
@@ -81,9 +89,10 @@ Invoke-WebRequest -Uri "https://github.com/cdarlint/winutils/raw/master/hadoop-3
 Invoke-WebRequest -Uri "https://github.com/cdarlint/winutils/raw/master/hadoop-3.3.5/bin/hadoop.dll" -OutFile .hadoop\bin\hadoop.dll
 ```
 
-## 🔑 Kaggle Credentials (Optional)
+## Kaggle Credentials (Optional)
 
-Required only if you need to download new datasets.
+Required only if you need to download new datasets through the Landing Zone.
+If you run the pipeline with `--skip-landing`, you can ignore this section.
 
 ### Linux/WSL Setup
 
@@ -102,7 +111,7 @@ C:\Users\<YourUsername>\.kaggle\kaggle.json
 
 Get your credentials from [Kaggle Settings](https://www.kaggle.com/settings).
 
-## ✅ Verify Installation
+## Verify Installation
 
 After setup, verify everything is working:
 
@@ -124,7 +133,7 @@ python -c "import pyspark; print(pyspark.__version__)"  # Should be 3.5.0
 python Part2_Formatting_zone/formatting_pipeline.py
 ```
 
-## 📝 Environment Details
+## Environment Details
 
 - Virtual environment location: `.venv` (Linux/WSL) or `.venv-win` (Windows)
 - Requirements file: `requirements.txt`

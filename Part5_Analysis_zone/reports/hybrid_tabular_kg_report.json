@@ -1,0 +1,150 @@
+{
+  "pipeline": "hybrid_tabular_kg_pipeline",
+  "run_at_utc": "2026-06-03T13:24:45+00:00",
+  "description": "Combines traditional tabular features with KG-derived node embeddings (population group + dataset + interaction) to demonstrate the boosting effect of semantic graph context on predictive performance.",
+  "feature_composition": {
+    "tabular_features": 16,
+    "kg_embedding_features": 96,
+    "total_features": 112
+  },
+  "rows_total": 30000,
+  "rows_train": 24000,
+  "rows_test": 6000,
+  "target_positive_rate": 0.1797,
+  "candidate_models": {
+    "logreg_hybrid": {
+      "cv_pr_auc_mean": 0.6410523435145357,
+      "cv_pr_auc_std": 0.003929393586551471
+    },
+    "rf_hybrid": {
+      "cv_pr_auc_mean": 0.6334097916886615,
+      "cv_pr_auc_std": 0.0031506839612818844
+    },
+    "gbm_hybrid": {
+      "cv_pr_auc_mean": 0.6320859821193942,
+      "cv_pr_auc_std": 0.008385730572518716
+    }
+  },
+  "selected_model": "logreg_hybrid",
+  "decision_threshold": 0.7195885862346986,
+  "test_metrics": {
+    "accuracy": 0.8468333333333333,
+    "precision": 0.5730027548209367,
+    "recall": 0.5788497217068646,
+    "f1": 0.5759113982464237,
+    "roc_auc": 0.8717674761530337,
+    "pr_auc": 0.6236139488859658,
+    "confusion_matrix": [
+      [
+        4457,
+        465
+      ],
+      [
+        454,
+        624
+      ]
+    ]
+  },
+  "top_feature_importance": [
+    {
+      "feature": "tab_age_years_proxy",
+      "importance": 1.174774535334336
+    },
+    {
+      "feature": "kg_interact_09",
+      "importance": 0.649578575134795
+    },
+    {
+      "feature": "kg_group_09",
+      "importance": 0.5770222224705231
+    },
+    {
+      "feature": "tab_general_health_score",
+      "importance": 0.5570963135933011
+    },
+    {
+      "feature": "kg_interact_23",
+      "importance": 0.49048511744897294
+    },
+    {
+      "feature": "tab_systolic_bp",
+      "importance": 0.4877375316423453
+    },
+    {
+      "feature": "kg_group_06",
+      "importance": 0.4518856257008377
+    },
+    {
+      "feature": "kg_interact_01",
+      "importance": 0.38053532548867863
+    },
+    {
+      "feature": "kg_interact_21",
+      "importance": 0.3569123625575288
+    },
+    {
+      "feature": "kg_interact_04",
+      "importance": 0.3523901293526943
+    },
+    {
+      "feature": "tab_high_cholesterol_flag",
+      "importance": 0.34129725544457157
+    },
+    {
+      "feature": "kg_group_25",
+      "importance": 0.33555280697315204
+    },
+    {
+      "feature": "kg_interact_05",
+      "importance": 0.33417302895226436
+    },
+    {
+      "feature": "kg_group_31",
+      "importance": 0.3278155993676225
+    },
+    {
+      "feature": "kg_interact_17",
+      "importance": 0.3252259916109748
+    },
+    {
+      "feature": "kg_interact_16",
+      "importance": 0.31651682939231557
+    },
+    {
+      "feature": "kg_group_19",
+      "importance": 0.31453643659431013
+    },
+    {
+      "feature": "tab_high_blood_pressure_flag",
+      "importance": 0.3036702960455576
+    },
+    {
+      "feature": "kg_group_12",
+      "importance": 0.25311425545803184
+    },
+    {
+      "feature": "kg_group_18",
+      "importance": 0.24946896378508787
+    },
+    {
+      "feature": "kg_interact_15",
+      "importance": 0.24368478890224887
+    },
+    {
+      "feature": "kg_group_15",
+      "importance": 0.2362477010200507
+    },
+    {
+      "feature": "kg_group_11",
+      "importance": 0.22330015149445614
+    },
+    {
+      "feature": "kg_interact_18",
+      "importance": 0.2161491457691579
+    },
+    {
+      "feature": "tab_smoking_flag",
+      "importance": 0.21211929763429113
+    }
+  ]
+}

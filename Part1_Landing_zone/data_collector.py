@@ -13,7 +13,7 @@ import logging
 import os
 import shutil
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import kaggle
@@ -118,7 +118,7 @@ def convert_csv_to_parquet_raw(
 
 
 def collect(dataset_name: str, kaggle_id: str, spark: SparkSession) -> None:
-    run_ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    run_ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     ingest_dir = LANDING_ZONE_ROOT / dataset_name / f"ingested_{run_ts}"
     tmp_download_dir = ingest_dir / "_tmp_download"
 
