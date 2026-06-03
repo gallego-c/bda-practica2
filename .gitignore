@@ -14,6 +14,8 @@ Part3_Trusted_zone/trusted_zone/
 Part3_Trusted_zone/_staging/
 Part4_Exploitation_zone/exploitation_zone/*.duckdb
 Part4_Exploitation_zone/exploitation_zone/_staging/
+Part4_Exploitation_zone/exploitation_zone/parquet/
+Part4_Exploitation_zone/exploitation_zone/kg/health_risk_kg.nt
 Part4_Exploitation_zone/_staging/
 Part5_Analysis_zone/models/
 
