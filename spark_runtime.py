@@ -91,4 +91,19 @@ def configure_spark_runtime(project_root: Path) -> str:
 
     java_options = configure_hadoop_home(project_root)
     user_option = f"-Duser.name={username}"
-    return f"{java_options} {user_option}".strip()
+    arrow_options = (
+        "-Dio.netty.tryReflectionSetAccessible=true "
+        "--add-opens=java.base/java.lang=ALL-UNNAMED "
+        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED "
+        "--add-opens=java.base/java.io=ALL-UNNAMED "
+        "--add-opens=java.base/java.net=ALL-UNNAMED "
+        "--add-opens=java.base/java.nio=ALL-UNNAMED "
+        "--add-opens=java.base/java.util=ALL-UNNAMED "
+        "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED "
+        "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED "
+        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED "
+        "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED "
+        "--add-opens=java.base/sun.security.action=ALL-UNNAMED "
+        "--add-opens=java.security.jgss/sun.security.jgss=ALL-UNNAMED"
+    )
+    return f"{java_options} {user_option} {arrow_options}".strip()

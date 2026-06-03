@@ -16,6 +16,7 @@ from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 
 from analysis_config import (
@@ -158,12 +159,12 @@ def build_hybrid_features(
 def stratified_sample(df: pd.DataFrame, max_rows: int) -> pd.DataFrame:
     if len(df) <= max_rows:
         return df
-    return df.groupby(["source_dataset", "target"], group_keys=False).apply(
-        lambda g: g.sample(
-            n=max(1, round(len(g) * max_rows / len(df))),
-            random_state=RANDOM_SEED,
-        )
-    ).reset_index(drop=True)
+    parts = []
+    for _, group in df.groupby(["source_dataset", "target"]):
+        group_size = max(1, round(len(group) * max_rows / len(df)))
+        group_size = min(group_size, len(group))
+        parts.append(group.sample(n=group_size, random_state=RANDOM_SEED))
+    return pd.concat(parts, axis=0).reset_index(drop=True)
 
 
 def main() -> None:
@@ -190,10 +191,12 @@ def main() -> None:
     # Candidate models
     candidates = {
         "logreg_hybrid": Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
             ("scaler", StandardScaler()),
             ("clf", LogisticRegression(max_iter=2000, class_weight="balanced", random_state=RANDOM_SEED)),
         ]),
         "rf_hybrid": Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
             ("scaler", StandardScaler()),
             ("clf", RandomForestClassifier(
                 n_estimators=150, max_depth=12, min_samples_leaf=8,
@@ -201,6 +204,7 @@ def main() -> None:
             )),
         ]),
         "gbm_hybrid": Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
             ("scaler", StandardScaler()),
             ("clf", GradientBoostingClassifier(
                 n_estimators=150, max_depth=5, min_samples_leaf=10,
